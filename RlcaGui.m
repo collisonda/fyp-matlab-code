@@ -6,8 +6,9 @@ classdef RlcaGui < handle
     properties
         Window
         EnvironmentPlot
-        agentGraphics
+        AgentPlots
         colourSettings
+        Environment
     end
     
     methods
@@ -17,11 +18,27 @@ classdef RlcaGui < handle
             windowSettings = obj.getWindowSettings();
             obj.Window = figure('Name','RLCA GUI','Position',windowSettings);
             obj.setupEnvironmentPlot();
+            obj.Environment = Environment;
+            
+            for iAgent = 1:obj.Environment.nAgents
+               obj.generateAgentGraphic(obj.Environment.Agents{iAgent}); 
+            end
         end
         
-        function obj = generateAgentGraphic(obj,a)
+        function obj = generateAgentGraphic(obj,Agent)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
+            x = Agent.Position.x;
+            y = Agent.Position.y;
+            r = Agent.radius;
+            
+            [xunit, yunit] = createCircle(x,y,r);
+            
+            iAgent = obj.Environment.nAgents;
+            hold on
+            obj.AgentPlots{iAgent} = plot(xunit,yunit,'o','LineWidth',3);
+            hold off
+            
             
         end
         
