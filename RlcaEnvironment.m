@@ -1,11 +1,11 @@
-classdef RlcaEnvironment
+classdef RlcaEnvironment < handle
     %ENVIRONMENT Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        Agents
+        Agents = cell(0);
         nAgents = 0;
-        time
+        time = 0;
     end
     
     methods
@@ -20,6 +20,12 @@ classdef RlcaEnvironment
             for iAgent = 1:obj.nAgents
                obj.Agents(iAgent).timeStep(EnvironmentConstants.stepSize); 
             end
+        end
+        
+        function [] = createAgent(obj,x0,y0,xg,yg)
+           iAgent = obj.nAgents + 1;
+           obj.Agents{iAgent} = RlcaAgent(x0,y0,xg,yg,iAgent);
+           obj.nAgents = iAgent;
         end
     end
 end

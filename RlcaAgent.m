@@ -15,8 +15,8 @@ classdef RlcaAgent
     end
     
     methods
-        function obj = RlcaAgent(x0,y0,xg,yg)
-            obj.iAgent = obj.getIAgent();
+        function obj = RlcaAgent(x0,y0,xg,yg,iAgent)
+            obj.iAgent = iAgent;
             obj.Position.x = x0;
             obj.Position.y = y0;
             obj.Goal.x = xg;
@@ -52,14 +52,6 @@ classdef RlcaAgent
         end
         
     end
-    
-    methods (Static)
-        function iAgent = getIAgent()
-           global nAgents
-           iAgent = nAgents + 1;
-           nAgents = iAgent;
-        end
-        
-    end
+
 end
 

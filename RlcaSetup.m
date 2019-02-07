@@ -7,9 +7,8 @@ close
 opengl software
 
 %%
-global nAgents
-nAgents = 0;
+Environment = RlcaEnvironment();
+Environment.createAgent(0,0,30,30);
 
 %%
-Environment = RlcaEnvironment();
 Gui = RlcaGui(Environment);

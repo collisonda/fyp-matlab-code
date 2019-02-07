@@ -36,16 +36,7 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.XLabel.FontWeight = 'bold';
             obj.EnvironmentPlot.YLabel.String = 'Y Position';
             obj.EnvironmentPlot.YLabel.FontWeight = 'bold';
-            obj.EnvironmentPlot.ColorOrder = [0 0.1 1
-                                              1 0 0.2
-                                              0.4 0.9 0
-                                              1 0.4 0
-                                              0.6 0 1
-                                              1 0.3 1
-                                              1 0.8 0
-                                              0.35 0.95 0.75
-                                              0 0.9 1
-                                              ];
+            obj.EnvironmentPlot.ColorOrder = EnvironmentConstants.colorOrder;
             obj.EnvironmentPlot.Box = 'on';
             
         end
