@@ -16,7 +16,7 @@ classdef RlcaGui < handle
             %RLCAGUI Construct an instance of this class
             %   Detailed explanation goes here
             windowSettings = obj.getWindowSettings();
-            obj.Window = figure('Name','RLCA GUI','Position',windowSettings);
+            obj.Window = figure('Name','RLCA GUI','Position',windowSettings,'GraphicsSmoothing','on');
             obj.setupEnvironmentPlot();
             obj.Environment = Environment;
             
@@ -34,9 +34,13 @@ classdef RlcaGui < handle
             
             [xunit, yunit] = createCircle(x,y,r);
             
-            iAgent = obj.Environment.nAgents;
+            iAgent = Agent.iAgent;
+            iColour = max(1,mod(iAgent,length(EnvironmentConstants.colorOrder)));
+            colour = EnvironmentConstants.colorOrder(iColour,1:end);
+            
             hold on
-            obj.AgentPlots{iAgent} = plot(xunit,yunit,'o','LineWidth',3);
+            obj.AgentPlots{iAgent} = plot(xunit,yunit);
+            fill(xunit,yunit,colour,'EdgeColor',colour,'FaceAlpha',0.1,'LineWidth',2);
             hold off
             
             
@@ -55,6 +59,7 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.YLabel.FontWeight = 'bold';
             obj.EnvironmentPlot.ColorOrder = EnvironmentConstants.colorOrder;
             obj.EnvironmentPlot.Box = 'on';
+            pbaspect([1 1 1]);
             
         end
         
