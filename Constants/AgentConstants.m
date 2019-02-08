@@ -3,8 +3,8 @@ classdef AgentConstants < handle
     %   Detailed explanation goes here
     
     properties (Constant)
-        radius = 6;
-        neighbourhoodRadius = 30;
+        RADIUS = 10;
+        NEIGHBOURHOOD_RADIUS = 30;
     end
 end
 

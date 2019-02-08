@@ -6,11 +6,11 @@ classdef RlcaAgent
         iAgent  % Number allocated to the agent
         Position = struct('x',[],'y',[]) % Current position of the agent
         Velocity = struct('preferred',[],'actual',0,'max',[]) % Velocity information
-        radius = AgentConstants.radius; % Collision radius of the agent
+        radius = AgentConstants.RADIUS; % Collision radius of the agent
         heading = [] % Agent direction in degrees
         Goal = struct('x',[],'y',[]) % Goal position of the agent
         distanceToGoal = [] % Current distance to agent goal
-        neighbourhoodRadius = AgentConstants.neighbourhoodRadius; % Observable space around the agent
+        neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS; % Observable space around the agent
         Neighbours = [] % Information on agents currently within its neighbourhood
     end
     
