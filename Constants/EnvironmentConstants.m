@@ -3,12 +3,12 @@ classdef EnvironmentConstants < handle
     %   Detailed explanation goes here
     
     properties (Constant)
-        tStart = 0;
-        tEnd = 100;
-        tStep = 0.1;
-        xBoundary = [-100,100];
-        yBoundary = [-100,100];
-        colorOrder = [0 0.1 1
+        START_TIME = 0;
+        FINISH_TIME = 100;
+        TIME_STEP = 0.1;
+        X_BOUNDARY = [-100,100];
+        Y_BOUNDARY = [-100,100];
+        COLOR_ORDER = [0 0.1 1
                     1 0 0.2
                     0.4 0.9 0
                     1 0.4 0

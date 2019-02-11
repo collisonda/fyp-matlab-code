@@ -3,6 +3,9 @@ classdef RlcaGui < handle
     %Interface
     %   Detailed explanation goes here
     
+    % TODO: Agent trails
+    % TODO: Arrow showing agent heading
+    
     properties
         Window
         EnvironmentPlot
@@ -11,17 +14,17 @@ classdef RlcaGui < handle
     end
     
     methods
-        function obj = RlcaGui(Environment)
+        function obj = RlcaGui()
             %RLCAGUI Construct an instance of this class
             %   Detailed explanation goes here
             
-            windowSettings = obj.getWindowSettings();
+            windowSettings = obj.getwindowsettings();
             obj.Window = figure('Name','RLCA GUI','Position',windowSettings,...
                 'GraphicsSmoothing','on','Resize','off');
-            obj.setupEnvironmentPlot();
+            obj.setupenvironmentplot();
         end
         
-        function obj = generateAgentGraphic(obj,Agent)
+        function obj = generateagentgraphic(obj,Agent)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             x = Agent.Position.x;
@@ -34,7 +37,7 @@ classdef RlcaGui < handle
             hold off
         end
         
-        function obj = setupEnvironmentPlot(obj)
+        function obj = setupenvironmentplot(obj)
             obj.EnvironmentPlot = axes(obj.Window);
             obj.EnvironmentPlot.XLim = EnvironmentConstants.xBoundary;
             obj.EnvironmentPlot.YLim = EnvironmentConstants.yBoundary;
@@ -51,7 +54,7 @@ classdef RlcaGui < handle
             
         end
         
-        function obj = updateGui(obj,Agents,nAgents)
+        function obj = updategui(obj,Agents,nAgents)
             for iAgent = 1:nAgents
                 obj.AgentPlots{iAgent}.XData = Agents{iAgent}.Position.x;
                 obj.AgentPlots{iAgent}.YData = Agents{iAgent}.Position.y;
@@ -62,7 +65,7 @@ classdef RlcaGui < handle
     end
     
     methods (Static)
-        function windowSettings = getWindowSettings()
+        function windowSettings = getwindowsettings()
             screenSize = get(0,'ScreenSize');
             xPos = 0.2*screenSize(3);
             yPos = 0.1*screenSize(4);

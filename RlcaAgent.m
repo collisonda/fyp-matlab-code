@@ -22,18 +22,18 @@ classdef RlcaAgent
             obj.Position.y = y0;
             obj.Goal.x = xg;
             obj.Goal.y = yg;
-            obj.heading = obj.calcHeading();
-            obj.distanceToGoal = obj.calcDistanceToGoal();
+            obj.heading = obj.calcheading();
+            obj.distanceToGoal = obj.calcdistancetogoal();
         end
         
-        function distanceToGoal = calcDistanceToGoal(obj)
+        function distanceToGoal = calcdistancetogoal(obj)
             deltaX = abs(obj.Position.x - obj.Goal.x);
             deltaY = abs(obj.Position.y - obj.Goal.y);
             distanceToGoal = hypot(deltaX,deltaY);
         end
         
-        function obj = timeStep(obj)
-            obj.reachedGoal = obj.checkReachedGoal();
+        function obj = timestep(obj)
+            obj.reachedGoal = obj.checkreachedgoal();
             if ~obj.reachedGoal
                 obj.heading = obj.calcHeading();
                 obj.Position = calcPosition(obj,EnvironmentConstants.tStep);
@@ -44,12 +44,12 @@ classdef RlcaAgent
             end
         end
         
-        function Position = calcPosition(obj,deltaT)
+        function Position = calcposition(obj,deltaT)
             Position.x = obj.Position.x + (obj.Velocity.actual*deltaT)*cos(deg2rad(obj.heading));
             Position.y = obj.Position.y + (obj.Velocity.actual*deltaT)*sin(deg2rad(obj.heading));
         end
         
-        function heading = calcHeading(obj)
+        function heading = calcheading(obj)
             x = obj.Position.x;
             y = obj.Position.y;
             xg = obj.Goal.x;
@@ -57,11 +57,11 @@ classdef RlcaAgent
             heading = rad2deg(atan2(yg-y,xg-x));
         end
         
-        function Neighbours = assessNeighbours(obj)
+        function Neighbours = assessneighbours(obj)
             
         end
         
-        function reachedGoal = checkReachedGoal(obj)
+        function reachedGoal = checkreachedgoal(obj)
             x = obj.Position.x;
             y = obj.Position.y;
             xg = obj.Goal.x;

@@ -17,13 +17,13 @@ classdef RlcaEnvironment < handle
         
         function obj = run(obj)
             for t = EnvironmentConstants.tStart:EnvironmentConstants.tStep:EnvironmentConstants.tEnd
-                obj.updateAgents();
+                obj.updateagents();
                 obj.Gui = obj.Gui.updateGui(obj.Agents,obj.nAgents);
             end
             
         end
         
-        function obj = timeStep(obj)
+        function obj = timestep(obj)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
             for iAgent = 1:obj.nAgents
@@ -31,17 +31,17 @@ classdef RlcaEnvironment < handle
             end
         end
         
-        function [] = createAgent(obj,x0,y0,xg,yg)
+        function [] = createagent(obj,x0,y0,xg,yg)
            iAgent = obj.nAgents + 1;
            obj.Agents{iAgent} = RlcaAgent(x0,y0,xg,yg,iAgent);
            obj.nAgents = iAgent;
            
                        
-           obj.Gui.generateAgentGraphic(obj.Agents{iAgent});
+           obj.Gui.generateagentgraphic(obj.Agents{iAgent});
 
         end
         
-        function obj = updateAgents(obj)
+        function obj = updateagents(obj)
            for iAgent = 1:obj.nAgents
               obj.Agents{iAgent} = obj.Agents{iAgent}.timeStep(); 
            end
