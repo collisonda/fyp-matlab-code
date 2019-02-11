@@ -35,9 +35,9 @@ classdef RlcaAgent
         function obj = timestep(obj)
             obj.reachedGoal = obj.checkreachedgoal();
             if ~obj.reachedGoal
-                obj.heading = obj.calcHeading();
-                obj.Position = calcPosition(obj,EnvironmentConstants.tStep);
-                obj.distanceToGoal = obj.calcDistanceToGoal();
+                obj.heading = obj.calcheading();
+                obj.Position = calcposition(obj,EnvironmentConstants.TIME_STEP);
+                obj.distanceToGoal = obj.calcdistancetogoal();
                 %obj.Neighbours = obj.assessNeighbours();
             else
                 obj.Velocity.actual = 0;
@@ -45,8 +45,10 @@ classdef RlcaAgent
         end
         
         function Position = calcposition(obj,deltaT)
-            Position.x = obj.Position.x + (obj.Velocity.actual*deltaT)*cos(deg2rad(obj.heading));
-            Position.y = obj.Position.y + (obj.Velocity.actual*deltaT)*sin(deg2rad(obj.heading));
+            Position.x = obj.Position.x + (obj.Velocity.actual*deltaT)*...
+                cos(deg2rad(obj.heading));
+            Position.y = obj.Position.y + (obj.Velocity.actual*deltaT)*...
+                sin(deg2rad(obj.heading));
         end
         
         function heading = calcheading(obj)
@@ -70,7 +72,8 @@ classdef RlcaAgent
             deltaX = abs(xg-x);
             deltaY = abs(yg-y);
             
-            reachedGoal = deltaX <= AgentConstants.GOAL_MARGIN && deltaY <= AgentConstants.GOAL_MARGIN; 
+            reachedGoal = deltaX <= AgentConstants.GOAL_MARGIN &&...
+                deltaY <= AgentConstants.GOAL_MARGIN;
             
         end
         

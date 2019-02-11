@@ -33,14 +33,15 @@ classdef RlcaGui < handle
             
             iAgent = Agent.iAgent;
             hold on
-            obj.AgentPlots{iAgent} = scatter(x,y,r*200,'filled','MarkerFaceAlpha',0.1,'MarkerEdgeColor','flat','LineWidth',2);
+            obj.AgentPlots{iAgent} = scatter(x,y,r*200,'filled',...
+                'MarkerFaceAlpha',0.1,'MarkerEdgeColor','flat','LineWidth',2);
             hold off
         end
         
         function obj = setupenvironmentplot(obj)
             obj.EnvironmentPlot = axes(obj.Window);
-            obj.EnvironmentPlot.XLim = EnvironmentConstants.xBoundary;
-            obj.EnvironmentPlot.YLim = EnvironmentConstants.yBoundary;
+            obj.EnvironmentPlot.XLim = EnvironmentConstants.X_BOUNDARY;
+            obj.EnvironmentPlot.YLim = EnvironmentConstants.Y_BOUNDARY;
             obj.EnvironmentPlot.GridColor = [0.05 0.05 0.05];
             obj.EnvironmentPlot.XGrid = 'on';
             obj.EnvironmentPlot.YGrid = 'on';
@@ -48,7 +49,7 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.XLabel.FontWeight = 'bold';
             obj.EnvironmentPlot.YLabel.String = 'Y Position';
             obj.EnvironmentPlot.YLabel.FontWeight = 'bold';
-            obj.EnvironmentPlot.ColorOrder = EnvironmentConstants.colorOrder;
+            obj.EnvironmentPlot.ColorOrder = EnvironmentConstants.COLOR_ORDER;
             obj.EnvironmentPlot.Box = 'on';
             pbaspect([1 1 1]);
             
@@ -59,7 +60,7 @@ classdef RlcaGui < handle
                 obj.AgentPlots{iAgent}.XData = Agents{iAgent}.Position.x;
                 obj.AgentPlots{iAgent}.YData = Agents{iAgent}.Position.y;
             end
-             drawnow
+            drawnow
         end
         
     end
