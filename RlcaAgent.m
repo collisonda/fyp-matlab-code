@@ -5,7 +5,7 @@ classdef RlcaAgent
     properties
         iAgent  % Number allocated to the agent
         Position = struct('x',[],'y',[]) % Current position of the agent
-        Velocity = struct('preferred',[],'actual',4,'max',[]) % Velocity information
+        Velocity = struct('preferred',[],'actual',6,'max',[]) % Velocity information
         radius = AgentConstants.RADIUS; % Collision radius of the agent
         heading = [] % Agent direction in degrees
         Goal = struct('x',[],'y',[]) % Goal position of the agent
