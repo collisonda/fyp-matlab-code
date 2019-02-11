@@ -3,14 +3,17 @@ classdef RlcaGui < handle
     %Interface
     %   Detailed explanation goes here
     
-    % TODO: Agent trails
     % TODO: Arrow showing agent heading
     
     properties
         Window
         EnvironmentPlot
         AgentPlots
+        AgentTrails
+        AgentGoals
+        AgentHeadings
         colourSettings
+        time
     end
     
     methods
@@ -34,7 +37,14 @@ classdef RlcaGui < handle
             iAgent = Agent.iAgent;
             hold on
             obj.AgentPlots{iAgent} = scatter(x,y,r*200,'filled',...
-                'MarkerFaceAlpha',0.1,'MarkerEdgeColor','flat','LineWidth',2);
+                'MarkerFaceAlpha',0.1,'MarkerEdgeColor',Agent.color,...
+                'MarkerFaceColor',Agent.color,'LineWidth',2);
+            obj.AgentTrails{iAgent} = animatedline(x,y,'Color',Agent.color,...
+                'LineStyle','--','LineWidth',1.5);
+            obj.AgentGoals{iAgent} = scatter(Agent.Goal.x,Agent.Goal.y,100,...
+                'x','MarkerEdgeColor',Agent.color,'LineWidth',1.5);
+            theta = Agent.heading;
+            obj.AgentHeadings{iAgent} = plot([x x+3*cos(theta)],[y y+3*sin(theta)],'Color',Agent.color,'LineWidth',1.5);
             hold off
         end
         
@@ -49,16 +59,26 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.XLabel.FontWeight = 'bold';
             obj.EnvironmentPlot.YLabel.String = 'Y Position';
             obj.EnvironmentPlot.YLabel.FontWeight = 'bold';
-            obj.EnvironmentPlot.ColorOrder = EnvironmentConstants.COLOR_ORDER;
             obj.EnvironmentPlot.Box = 'on';
             pbaspect([1 1 1]);
+            obj.time = annotation('textbox',[0.700520833333333 ...
+                0.924826389328679 0.122656248544808 0.0369791662268766],...
+                'String','Time: 0.0s','FontSize',12,'FontWeight','bold',...
+                'BackgroundColor',[1 1 1],'VerticalAlignment','middle');
             
         end
         
-        function obj = updategui(obj,Agents,nAgents)
+        function obj = updategui(obj,Agents,nAgents,time)
             for iAgent = 1:nAgents
-                obj.AgentPlots{iAgent}.XData = Agents{iAgent}.Position.x;
-                obj.AgentPlots{iAgent}.YData = Agents{iAgent}.Position.y;
+                obj.time.String = ['Time: ' num2str(time)];
+                x = Agents{iAgent}.Position.x;
+                y = Agents{iAgent}.Position.y;
+                obj.AgentPlots{iAgent}.XData = x;
+                obj.AgentPlots{iAgent}.YData = y;
+                obj.AgentTrails{iAgent}.addpoints(x,y);
+                theta = Agents{iAgent}.heading;
+                obj.AgentHeadings{iAgent}.XData = [x x+3*cos(theta)];
+                obj.AgentHeadings{iAgent}.YData = [y y+3*sin(theta)];
             end
             drawnow
         end

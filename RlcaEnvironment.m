@@ -19,8 +19,9 @@ classdef RlcaEnvironment < handle
             for t = EnvironmentConstants.START_TIME:...
                     EnvironmentConstants.TIME_STEP:...
                     EnvironmentConstants.FINISH_TIME
+                obj.time = t;
                 obj.updateagents();
-                obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
+                obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents,obj.time);
             end
             
         end
