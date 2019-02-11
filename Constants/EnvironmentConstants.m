@@ -3,7 +3,9 @@ classdef EnvironmentConstants < handle
     %   Detailed explanation goes here
     
     properties (Constant)
-        stepSize = 0.1;
+        tStart = 0;
+        tEnd = 100;
+        tStep = 0.1;
         xBoundary = [-100,100];
         yBoundary = [-100,100];
         colorOrder = [0 0.1 1

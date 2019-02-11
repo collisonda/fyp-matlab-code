@@ -8,22 +8,17 @@ classdef RlcaGui < handle
         EnvironmentPlot
         AgentPlots
         colourSettings
-        Environment
     end
     
     methods
         function obj = RlcaGui(Environment)
             %RLCAGUI Construct an instance of this class
             %   Detailed explanation goes here
+            
             windowSettings = obj.getWindowSettings();
             obj.Window = figure('Name','RLCA GUI','Position',windowSettings,...
                 'GraphicsSmoothing','on','Resize','off');
             obj.setupEnvironmentPlot();
-            obj.Environment = Environment;
-            
-            for iAgent = 1:obj.Environment.nAgents
-               obj.generateAgentGraphic(obj.Environment.Agents{iAgent}); 
-            end
         end
         
         function obj = generateAgentGraphic(obj,Agent)
@@ -36,7 +31,7 @@ classdef RlcaGui < handle
             iAgent = Agent.iAgent;
             hold on
             obj.AgentPlots{iAgent} = scatter(x,y,r*200,'filled','MarkerFaceAlpha',0.1,'MarkerEdgeColor','flat','LineWidth',2);
-            hold off 
+            hold off
         end
         
         function obj = setupEnvironmentPlot(obj)
@@ -54,6 +49,14 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.Box = 'on';
             pbaspect([1 1 1]);
             
+        end
+        
+        function obj = updateGui(obj,Agents,nAgents)
+            for iAgent = 1:nAgents
+                obj.AgentPlots{iAgent}.XData = Agents{iAgent}.Position.x;
+                obj.AgentPlots{iAgent}.YData = Agents{iAgent}.Position.y;
+            end
+             drawnow
         end
         
     end
