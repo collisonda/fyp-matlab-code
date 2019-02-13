@@ -1,37 +1,35 @@
 classdef RlcaAgent
     %AGENT Summary of this class goes here
-    %   Detailed explanation goes here
+    % Author: Dale Collison
     
+    %% RlcaAgent - Properties
     properties
-        iAgent  % Number allocated to the agent
-        Position = struct('x',[],'y',[]) % Current position of the agent
-        Velocity = struct('preferred',[],'actual',6,'max',[]) % Velocity information
-        radius = AgentConstants.RADIUS; % Collision radius of the agent
-        heading = [] % Agent direction in degrees
-        Goal = struct('x',[],'y',[]) % Goal position of the agent
-        distanceToGoal = [] % Current distance to agent goal
+        iAgent              % Number allocated to the agent
+        Position            = struct('x',[],'y',[]) % Current position of the agent
+        Velocity            = struct('preferred',[],'actual',6,'max',[]) % Velocity information
+        radius              = AgentConstants.RADIUS; % Collision radius of the agent
+        heading             = [] % Agent direction in degrees
+        Goal                = struct('x',[],'y',[]) % Goal position of the agent
+        distanceToGoal      = [] % Current distance to agent goal
         neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS; % Observable space around the agent
-        Neighbours = [] % Information on agents currently within its neighbourhood
-        reachedGoal = 0;
-        color
+        Neighbours          = [] % Information on agents currently within its neighbourhood
+        reachedGoal         = 0; % Boolean to show if the agent has reached its intended goal
+        collided            = 0; % Boolean to show if the agent has been in a collision
+        color               % Colour of the agent on the plot
     end
     
-    methods
+    %% RlcaAgent - Public Methods
+    methods (Access = public)
         function obj = RlcaAgent(x0,y0,xg,yg,iAgent)
-            obj.iAgent = iAgent;
-            obj.color = obj.getcolor();
-            obj.Position.x = x0;
-            obj.Position.y = y0;
-            obj.Goal.x = xg;
-            obj.Goal.y = yg;
-            obj.heading = obj.calcheading();
-            obj.distanceToGoal = obj.calcdistancetogoal();
-        end
-        
-        function distanceToGoal = calcdistancetogoal(obj)
-            deltaX = abs(obj.Position.x - obj.Goal.x);
-            deltaY = abs(obj.Position.y - obj.Goal.y);
-            distanceToGoal = hypot(deltaX,deltaY);
+            obj.checkcoordinates(x0,y0,xg,yg);
+            obj.iAgent          = iAgent;
+            obj.color           = obj.getcolor();
+            obj.Position.x      = x0;
+            obj.Position.y      = y0;
+            obj.Goal.x          = xg;
+            obj.Goal.y          = yg;
+            obj.heading         = obj.calcheading();
+            obj.distanceToGoal  = obj.calcdistancetogoal();
         end
         
         function obj = timestep(obj)
@@ -44,6 +42,18 @@ classdef RlcaAgent
             else
                 obj.Velocity.actual = 0;
             end
+            
+        end
+        
+    end
+    
+    %% RlcaAgent - Private Methods
+    methods (Access = private)
+        
+        function distanceToGoal = calcdistancetogoal(obj)
+            deltaX = abs(obj.Position.x - obj.Goal.x);
+            deltaY = abs(obj.Position.y - obj.Goal.y);
+            distanceToGoal = hypot(deltaX,deltaY);
         end
         
         function Position = calcposition(obj,deltaT)
@@ -80,11 +90,21 @@ classdef RlcaAgent
         end
         
         function color = getcolor(obj)
-           iColor = obj.iAgent;
-           if iColor > 9
-              iColor = mod(iColor,9); 
-           end
-           color = AgentConstants.COLOR_ORDER(iColor,1:end); 
+            iColor = obj.iAgent;
+            if iColor > 9
+                iColor = mod(iColor,9);
+            end
+            color = AgentConstants.COLOR_ORDER(iColor,1:end);
+        end
+        
+        function checkcoordinates(~,x0,y0,xg,yg)
+            isWithinX = nnz(([x0,xg] < EnvironmentConstants.X_BOUNDARY(1))...
+                | [x0,xg] > EnvironmentConstants.X_BOUNDARY(2)) == 0;
+            isWithinY = nnz(([y0,yg] < EnvironmentConstants.Y_BOUNDARY(1))...
+                | [y0,yg] > EnvironmentConstants.Y_BOUNDARY(2)) == 0;
+            if ~isWithinX || ~isWithinY
+                error('Coordinates outside of environment boundaries.')
+            end
         end
         
     end

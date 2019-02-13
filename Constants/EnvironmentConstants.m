@@ -4,7 +4,7 @@ classdef EnvironmentConstants < handle
     
     properties (Constant)
         START_TIME = 0;
-        FINISH_TIME = 50;
+        MAX_TIME = 50;
         TIME_STEP = 0.1;
         X_BOUNDARY = [-100,100];
         Y_BOUNDARY = [-100,100];

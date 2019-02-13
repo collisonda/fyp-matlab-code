@@ -60,12 +60,6 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.YLabel.String = 'Y Position';
             obj.EnvironmentPlot.YLabel.FontWeight = 'bold';
             obj.EnvironmentPlot.Box = 'on';
-            pbaspect([1 1 1]);
-%             obj.time = annotation('textbox',[0.700520833333333 ...
-%                 0.924826389328679 0.122656248544808 0.0369791662268766],...
-%                 'String','Time: 0.0s','FontSize',12,'FontWeight','bold',...
-%                 'BackgroundColor',[1 1 1],'VerticalAlignment','middle');
-            
         end
         
         function obj = updategui(obj,Agents,nAgents,time)
