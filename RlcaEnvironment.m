@@ -25,7 +25,7 @@ classdef RlcaEnvironment < handle
             t = EnvironmentConstants.START_TIME;
             while nnz(obj.agentsStatic) ~= obj.nAgents && EnvironmentConstants.MAX_TIME
                 obj.time = t;
-                obj.updateagents();
+                obj = obj.updateagents();
                 [obj.agentsStatic, obj.nCollisions] = obj.assessagents();
                 obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents,obj.time);
                 t = t + EnvironmentConstants.TIME_STEP;
@@ -38,7 +38,7 @@ classdef RlcaEnvironment < handle
             obj.Agents{iAgent} = RlcaAgent(x0,y0,xg,yg,iAgent);
             obj.nAgents = iAgent;
             
-            obj.Gui.generateagentgraphic(obj.Agents{iAgent});
+            obj.Gui = obj.Gui.generateagentgraphic(obj.Agents{iAgent});
         end
         
         function obj = updateagents(obj)

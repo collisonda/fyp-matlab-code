@@ -1,4 +1,4 @@
-function RlcaSetup()
+
 %% Housekeeping
 clc % Clear command line
 clear % Clear workspace
@@ -24,5 +24,3 @@ clear i
 
 %% Run Simulation
 Environment = Environment.run();
-
-end
