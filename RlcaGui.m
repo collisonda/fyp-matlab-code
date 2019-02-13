@@ -37,7 +37,13 @@ classdef RlcaGui < handle
             
             iAgent = Agent.iAgent;
             hold on
-            obj.AgentPlots{iAgent} = scatter(x,y,r*200,'filled',...
+            ax = gca;
+            old_units = get(ax, 'Units');
+            set(ax, 'Units', 'points');
+            pos_points = get(ax, 'Position');
+            set(ax, 'Units', old_units);
+            narrower_part_points = min(pos_points(3:4));
+            obj.AgentPlots{iAgent} = scatter(x,y,(narrower_part_points^2)/(100/r)^2,'filled',...
                 'MarkerFaceAlpha',0.1,'MarkerEdgeColor',Agent.color,...
                 'MarkerFaceColor',Agent.color,'LineWidth',2);
             obj.AgentTrails{iAgent} = animatedline(x,y,'Color',Agent.color,...
@@ -62,9 +68,10 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.YLabel.String = 'Y Position';
             obj.EnvironmentPlot.YLabel.FontWeight = 'bold';
             obj.EnvironmentPlot.Box = 'on';
+            pbaspect([1 1 1])
         end
         
-        function obj = updategui(obj,Agents,nAgents,time)
+        function obj = updategui(obj,Agents,nAgents)
             for iAgent = 1:nAgents
                 x = Agents{iAgent}.Position.x;
                 y = Agents{iAgent}.Position.y;
@@ -75,6 +82,8 @@ classdef RlcaGui < handle
                 theta = Agents{iAgent}.heading;
                 obj.AgentHeadings{iAgent}.XData = [x x+2*cos(theta)];
                 obj.AgentHeadings{iAgent}.YData = [y y+2*sin(theta)];
+                obj.AgentGoals{iAgent}.XData = Agents{iAgent}.Goal.x;
+                obj.AgentGoals{iAgent}.YData = Agents{iAgent}.Goal.y;
             end
             drawnow
         end

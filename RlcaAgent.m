@@ -7,7 +7,7 @@ classdef RlcaAgent
         iAgent              % Number allocated to the agent
         Position            = struct('x',[],'y',[]) % Current position of the agent
         Velocity            = struct('preferred',[],'actual',6,'max',[]) % Velocity information
-        radius              = AgentConstants.RADIUS; % Collision radius of the agent
+        radius              % Collision radius of the agent
         heading             = [] % Agent direction in degrees
         Goal                = struct('x',[],'y',[]) % Goal position of the agent
         distanceToGoal      = [] % Current distance to agent goal
@@ -21,6 +21,7 @@ classdef RlcaAgent
     %% RlcaAgent - Public Methods
     methods (Access = public)
         function obj = RlcaAgent(x0,y0,xg,yg,iAgent)
+            obj.radius = AgentConstants.RADIUS;
             obj.checkcoordinates(x0,y0,xg,yg);
             obj.iAgent          = iAgent;
             obj.color           = obj.getcolor();
@@ -33,6 +34,12 @@ classdef RlcaAgent
         end
         
         function obj = timestep(obj)
+            % Agent follows cursor
+            A = get(0, 'PointerLocation');
+            obj.Goal.x = (A(1)-1306)/4.69;
+            obj.Goal.y = (A(2)-740)/4.69;
+            %
+            
             obj.reachedGoal = obj.checkreachedgoal();
             if ~obj.reachedGoal
                 obj.heading = obj.calcheading();

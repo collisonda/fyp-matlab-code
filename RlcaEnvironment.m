@@ -16,18 +16,18 @@ classdef RlcaEnvironment < handle
         function obj = RlcaEnvironment()
             obj.EventLog = RlcaEventLog();
             obj.EventLog.createEvent('Initialising');
-            obj.Gui = RlcaGui(); 
+            obj.Gui = RlcaGui();
         end
         
         function obj = run(obj)
             pause(0.5)
             obj.EventLog.createEvent('Commencing run');
             t = EnvironmentConstants.START_TIME;
-            while nnz(obj.agentsStatic) ~= obj.nAgents && EnvironmentConstants.MAX_TIME
+            while nnz(obj.agentsStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME
                 obj.time = t;
                 obj = obj.updateagents();
                 [obj.agentsStatic, obj.nCollisions] = obj.assessagents();
-                obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents,obj.time);
+                obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 t = t + EnvironmentConstants.TIME_STEP;
             end
             obj.EventLog.createEvent('Run complete');
