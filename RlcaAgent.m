@@ -36,10 +36,10 @@ classdef RlcaAgent
         end
         
         function obj = timestep(obj)
-%             % Agent follows cursor
-%             A = get(0, 'PointerLocation');
-%             obj.goal.x = (A(1)-1306)/4.69;
-%             obj.goal.y = (A(2)-740)/4.69;
+            %             % Agent follows cursor
+            %             A = get(0, 'PointerLocation');
+            %             obj.goal.x = (A(1)-1306)/4.69;
+            %             obj.goal.y = (A(2)-740)/4.69;
             
             obj.reachedGoal = obj.checkreachedgoal();
             if ~obj.reachedGoal
@@ -54,19 +54,27 @@ classdef RlcaAgent
             
         end
         
-        function obj = addneighbour(obj,Agent)
-           neighbourMatch = Agent.iAgent == obj.neighbourIds; 
-           
-           if nnz(neighbourMatch) > 0
-               iNeighbour = find(neighbourMatch == 1);
-           else
-               iNeighbour = length(obj.neighbourIds)+1;
-               obj.neighbourIds(end+1) = Agent.iAgent;
-           end
-           
-           obj.Neighbours.position(iNeighbour,:) = Agent.position;
-           obj.Neighbours.velocity(iNeighbour,:) = Agent.Velocity.actual;
-           obj.Neighbours.radius(iNeighbour,1) = Agent.radius;
+        function obj = addneighbour(obj,Neighbour)
+            iNeighbour = find(obj.neighbourIds == Neighbour.iAgent);
+            
+            [nx, ny] = createcircle(obj.position(1),obj.position(2),...
+                AgentConstants.NEIGHBOURHOOD_RADIUS);
+            isWithinNeighbourhood = inpolygon(Neighbour.position(1),Neighbour.position(2),nx,ny);
+            
+            if ~isempty(iNeighbour) && ~isWithinNeighbourhood % If an existing neighbour has exited the neighbourhood
+                obj.Neighbours.position(iNeighbour,:) = [];
+                obj.Neighbours.velocity(iNeighbour,:) = [];
+                obj.Neighbours.radius(iNeighbour) = [];
+                obj.neighbourIds(iNeighbour) = [];
+            elseif isWithinNeighbourhood
+                if isempty(iNeighbour)
+                    iNeighbour = length(obj.neighbourIds)+1;
+                    obj.neighbourIds(end+1) = Neighbour.iAgent;
+                end
+                obj.Neighbours.position(iNeighbour,:) = Neighbour.position;
+                obj.Neighbours.velocity(iNeighbour,:) = Neighbour.Velocity.actual;
+                obj.Neighbours.radius(iNeighbour,1) = Neighbour.radius;
+            end
         end
         
     end
