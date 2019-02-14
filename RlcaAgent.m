@@ -12,7 +12,7 @@ classdef RlcaAgent
         heading = [] % Agent direction in degrees
         goal = zeros(1,2) % Goal position of the agent
         distanceToGoal = [] % Current distance to agent goal
-        neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS % Observable space around the agent
+        visionRadius = AgentConstants.VISION_RADIUS % Observable space around the agent
         Neighbours = struct('position',[],'velocity',[],'radius',[]) % Information on agents currently within its neighbourhood
         neighbourIds = []
         reachedGoal = 0 % Boolean to show if the agent has reached its intended goal
@@ -56,22 +56,23 @@ classdef RlcaAgent
         
         function obj = addneighbour(obj,Neighbour)
             iNeighbour = find(obj.neighbourIds == Neighbour.iAgent);
-            
-%             [nx, ny] = createcircle(obj.position(1),obj.position(2),...
-%                 AgentConstants.NEIGHBOURHOOD_RADIUS);
-
-            [nx, ny] = createarc(obj.heading + pi/4,obj.heading - pi/4,obj.position(1),obj.position(2),AgentConstants.NEIGHBOURHOOD_RADIUS);
-            isWithinNeighbourhood = inpolygon(Neighbour.position(1),Neighbour.position(2),nx,ny);
+            [nx, ny] = createarc(obj.heading + AgentConstants.VISION_ANGLE,...
+                obj.heading - AgentConstants.VISION_ANGLE,obj.position(1),...
+                obj.position(2),AgentConstants.VISION_RADIUS);
+            isWithinNeighbourhood = inpolygon(Neighbour.position(1),...
+                Neighbour.position(2),nx,ny);
             
             if ~isempty(iNeighbour) && ~isWithinNeighbourhood % If an existing neighbour has exited the neighbourhood
                 obj.Neighbours.position(iNeighbour,:) = [];
                 obj.Neighbours.velocity(iNeighbour,:) = [];
                 obj.Neighbours.radius(iNeighbour) = [];
                 obj.neighbourIds(iNeighbour) = [];
+                disp(['Agent ' num2str(obj.iAgent) ' Lost Agent ' num2str(Neighbour.iAgent)])
             elseif isWithinNeighbourhood
                 if isempty(iNeighbour)
                     iNeighbour = length(obj.neighbourIds)+1;
                     obj.neighbourIds(end+1) = Neighbour.iAgent;
+                    disp(['Agent ' num2str(obj.iAgent) ' Detected Agent ' num2str(Neighbour.iAgent)])
                 end
                 obj.Neighbours.position(iNeighbour,:) = Neighbour.position;
                 obj.Neighbours.velocity(iNeighbour,:) = Neighbour.Velocity.actual;
