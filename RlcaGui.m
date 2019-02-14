@@ -5,6 +5,7 @@ classdef RlcaGui < handle
     
     % TODO: Arrow showing agent heading
     
+    %% RlcaGui - Properties
     properties
         Window
         EnvironmentPlot
@@ -17,11 +18,12 @@ classdef RlcaGui < handle
         time
     end
     
-    methods
+    %% RlcaGui - Public Methods
+    methods (Access = public)
+        
         function obj = RlcaGui()
             %RLCAGUI Construct an instance of this class
             %   Detailed explanation goes here
-            
             windowSettings = obj.getwindowsettings();
             obj.Window = figure('Name','RLCA GUI','Position',windowSettings,...
                 'GraphicsSmoothing','on','Resize','off');
@@ -31,30 +33,53 @@ classdef RlcaGui < handle
         function obj = generateagentgraphic(obj,Agent)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            x = Agent.Position.x;
-            y = Agent.Position.y;
+            x = Agent.position(1);
+            y = Agent.position(2);
             r = Agent.radius;
             
             iAgent = Agent.iAgent;
             hold on
             ax = gca;
-            old_units = get(ax, 'Units');
+            oldUnits = get(ax, 'Units');
             set(ax, 'Units', 'points');
-            pos_points = get(ax, 'Position');
-            set(ax, 'Units', old_units);
-            narrower_part_points = min(pos_points(3:4));
-            obj.AgentPlots{iAgent} = scatter(x,y,(narrower_part_points^2)/(100/r)^2,'filled',...
-                'MarkerFaceAlpha',0.1,'MarkerEdgeColor',Agent.color,...
-                'MarkerFaceColor',Agent.color,'LineWidth',2);
+            posPoints = get(ax, 'Position');
+            set(ax, 'Units', oldUnits);
+            narrower_part_points = min(posPoints(3:4));
+            obj.AgentPlots{iAgent} = scatter(x,y,(narrower_part_points^2)/...
+                (100/r)^2,'filled','MarkerFaceAlpha',0.1,'MarkerEdgeColor',...
+                Agent.color,'MarkerFaceColor',Agent.color,'LineWidth',2);
             obj.AgentTrails{iAgent} = animatedline(x,y,'Color',Agent.color,...
                 'LineStyle','--','LineWidth',1.5);
-            obj.AgentGoals{iAgent} = scatter(Agent.Goal.x,Agent.Goal.y,100,...
+            obj.AgentGoals{iAgent} = scatter(Agent.goal(1),Agent.goal(2),100,...
                 'x','MarkerEdgeColor',Agent.color,'LineWidth',1.5);
-            obj.AgentNumbers{iAgent} = text(x,y+4,num2str(iAgent),'Color',Agent.color,'HorizontalAlignment','center','FontWeight','bold');
-            theta = Agent.heading;
-            obj.AgentHeadings{iAgent} = plot([x x+2*cos(theta)],[y y+2*sin(theta)],'Color',Agent.color,'LineWidth',1.5);
+            obj.AgentNumbers{iAgent} = text(x,y+4,num2str(iAgent),'Color',...
+                Agent.color,'HorizontalAlignment','center','FontWeight','bold');
+            obj.AgentHeadings{iAgent} = plot([x x+2*cos(Agent.heading)],...
+                [y y+2*sin(Agent.heading)],'Color',Agent.color,'LineWidth',1.5);
             hold off
         end
+        
+        function obj = updategui(obj,Agents,nAgents)
+            for iAgent = 1:nAgents
+                x = Agents{iAgent}.position(1);
+                y = Agents{iAgent}.position(2);
+                obj.AgentPlots{iAgent}.XData = x;
+                obj.AgentPlots{iAgent}.YData = y;
+                obj.AgentNumbers{iAgent}.Position = [x,y+4,0];
+                obj.AgentTrails{iAgent}.addpoints(x,y);
+                theta = Agents{iAgent}.heading;
+                obj.AgentHeadings{iAgent}.XData = [x x+2*cos(theta)];
+                obj.AgentHeadings{iAgent}.YData = [y y+2*sin(theta)];
+                obj.AgentGoals{iAgent}.XData = Agents{iAgent}.goal(1);
+                obj.AgentGoals{iAgent}.YData = Agents{iAgent}.goal(2);
+            end
+            drawnow
+        end
+        
+    end
+    
+    %% RlcaGui - Private Methods
+    methods (Access = private)
         
         function obj = setupenvironmentplot(obj)
             obj.EnvironmentPlot = axes(obj.Window);
@@ -70,26 +95,9 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.Box = 'on';
             pbaspect([1 1 1])
         end
-        
-        function obj = updategui(obj,Agents,nAgents)
-            for iAgent = 1:nAgents
-                x = Agents{iAgent}.Position.x;
-                y = Agents{iAgent}.Position.y;
-                obj.AgentPlots{iAgent}.XData = x;
-                obj.AgentPlots{iAgent}.YData = y;
-                obj.AgentNumbers{iAgent}.Position = [x,y+4,0];
-                obj.AgentTrails{iAgent}.addpoints(x,y);
-                theta = Agents{iAgent}.heading;
-                obj.AgentHeadings{iAgent}.XData = [x x+2*cos(theta)];
-                obj.AgentHeadings{iAgent}.YData = [y y+2*sin(theta)];
-                obj.AgentGoals{iAgent}.XData = Agents{iAgent}.Goal.x;
-                obj.AgentGoals{iAgent}.YData = Agents{iAgent}.Goal.y;
-            end
-            drawnow
-        end
-        
     end
     
+    %% RlcaGui - Static Methods
     methods (Static)
         function windowSettings = getwindowsettings()
             screenSize = get(0,'ScreenSize');
@@ -101,5 +109,6 @@ classdef RlcaGui < handle
         end
         
     end
+    
 end
 

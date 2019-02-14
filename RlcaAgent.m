@@ -4,18 +4,20 @@ classdef RlcaAgent
     
     %% RlcaAgent - Properties
     properties
-        iAgent              % Number allocated to the agent
-        Position            = struct('x',[],'y',[]) % Current position of the agent
-        Velocity            = struct('preferred',[],'actual',6,'max',[]) % Velocity information
-        radius              % Collision radius of the agent
-        heading             = [] % Agent direction in degrees
-        Goal                = struct('x',[],'y',[]) % Goal position of the agent
-        distanceToGoal      = [] % Current distance to agent goal
-        neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS; % Observable space around the agent
-        Neighbours          = [] % Information on agents currently within its neighbourhood
-        reachedGoal         = 0; % Boolean to show if the agent has reached its intended goal
-        collided            = 0; % Boolean to show if the agent has been in a collision
-        color               % Colour of the agent on the plot
+        iAgent % Number allocated to the agent
+        position = zeros(1,2) % Current position of the agent
+        Velocity = struct('desired',[],'actual',[]) % Velocity information
+        speed = []
+        radius = [] % Collision radius of the agent
+        heading = [] % Agent direction in degrees
+        goal = zeros(1,2) % Goal position of the agent
+        distanceToGoal = [] % Current distance to agent goal
+        neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS % Observable space around the agent
+        Neighbours = struct('position',[],'velocity',[],'radius',[]) % Information on agents currently within its neighbourhood
+        neighbourIds = []
+        reachedGoal = 0 % Boolean to show if the agent has reached its intended goal
+        collided = 0 % Boolean to show if the agent has been in a collision
+        color % Colour of the agent on the plot
     end
     
     %% RlcaAgent - Public Methods
@@ -23,33 +25,48 @@ classdef RlcaAgent
         function obj = RlcaAgent(x0,y0,xg,yg,iAgent)
             obj.radius = AgentConstants.RADIUS;
             obj.checkcoordinates(x0,y0,xg,yg);
-            obj.iAgent          = iAgent;
-            obj.color           = obj.getcolor();
-            obj.Position.x      = x0;
-            obj.Position.y      = y0;
-            obj.Goal.x          = xg;
-            obj.Goal.y          = yg;
-            obj.heading         = obj.calcheading();
-            obj.distanceToGoal  = obj.calcdistancetogoal();
+            obj.iAgent = iAgent;
+            obj.color = obj.getcolor();
+            obj.position = [x0, y0];
+            obj.goal = [xg, yg];
+            obj.heading = obj.calcheading();
+            obj.Velocity.actual = obj.calcvelocity();
+            obj.speed = norm(obj.Velocity.actual);
+            obj.distanceToGoal = obj.calcdistancetogoal();
         end
         
         function obj = timestep(obj)
-            % Agent follows cursor
-            A = get(0, 'PointerLocation');
-            obj.Goal.x = (A(1)-1306)/4.69;
-            obj.Goal.y = (A(2)-740)/4.69;
-            %
+%             % Agent follows cursor
+%             A = get(0, 'PointerLocation');
+%             obj.goal.x = (A(1)-1306)/4.69;
+%             obj.goal.y = (A(2)-740)/4.69;
             
             obj.reachedGoal = obj.checkreachedgoal();
             if ~obj.reachedGoal
                 obj.heading = obj.calcheading();
-                obj.Position = calcposition(obj,EnvironmentConstants.TIME_STEP);
+                obj.Velocity.actual = obj.calcvelocity();
+                obj.speed = norm(obj.Velocity.actual);
+                obj.position = calcposition(obj,EnvironmentConstants.TIME_STEP);
                 obj.distanceToGoal = obj.calcdistancetogoal();
-                %obj.Neighbours = obj.assessNeighbours();
             else
-                obj.Velocity.actual = 0;
+                obj.speed = 0;
             end
             
+        end
+        
+        function obj = addneighbour(obj,Agent)
+           neighbourMatch = Agent.iAgent == obj.neighbourIds; 
+           
+           if nnz(neighbourMatch) > 0
+               iNeighbour = find(neighbourMatch == 1);
+           else
+               iNeighbour = length(obj.neighbourIds)+1;
+               obj.neighbourIds(end+1) = Agent.iAgent;
+           end
+           
+           obj.Neighbours.position(iNeighbour,:) = Agent.position;
+           obj.Neighbours.velocity(iNeighbour,:) = Agent.Velocity.actual;
+           obj.Neighbours.radius(iNeighbour,1) = Agent.radius;
         end
         
     end
@@ -58,42 +75,36 @@ classdef RlcaAgent
     methods (Access = private)
         
         function distanceToGoal = calcdistancetogoal(obj)
-            deltaX = abs(obj.Position.x - obj.Goal.x);
-            deltaY = abs(obj.Position.y - obj.Goal.y);
+            deltaX = abs(obj.position(1) - obj.goal(1));
+            deltaY = abs(obj.position(2) - obj.goal(2));
             distanceToGoal = hypot(deltaX,deltaY);
         end
         
-        function Position = calcposition(obj,deltaT)
-            Position.x = obj.Position.x + (obj.Velocity.actual*deltaT)*...
+        function actualVelocity = calcvelocity(obj)
+            actualVelocity(1) = AgentConstants.MAX_VELOCITY*cos(obj.heading);
+            actualVelocity(2) = AgentConstants.MAX_VELOCITY*sin(obj.heading);
+        end
+        
+        function position = calcposition(obj,deltaT)
+            position(1) = obj.position(1) + (obj.speed*deltaT)*...
                 cos(obj.heading);
-            Position.y = obj.Position.y + (obj.Velocity.actual*deltaT)*...
+            position(2) = obj.position(2) + (obj.speed*deltaT)*...
                 sin(obj.heading);
         end
         
         function heading = calcheading(obj)
-            x = obj.Position.x;
-            y = obj.Position.y;
-            xg = obj.Goal.x;
-            yg = obj.Goal.y;
-            heading = atan2(yg-y,xg-x);
-        end
-        
-        function Neighbours = assessneighbours(obj)
-            %TODO
+            deltaP = obj.goal - obj.position;
+            heading = atan2(deltaP(2),deltaP(1));
         end
         
         function reachedGoal = checkreachedgoal(obj)
-            x = obj.Position.x;
-            y = obj.Position.y;
-            xg = obj.Goal.x;
-            yg = obj.Goal.y;
+            deltaP = obj.goal - obj.position;
             
-            deltaX = abs(xg-x);
-            deltaY = abs(yg-y);
+            deltaX = abs(deltaP(1));
+            deltaY = abs(deltaP(2));
             
             reachedGoal = deltaX <= AgentConstants.GOAL_MARGIN &&...
                 deltaY <= AgentConstants.GOAL_MARGIN;
-            
         end
         
         function color = getcolor(obj)

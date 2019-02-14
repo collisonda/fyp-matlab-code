@@ -17,7 +17,7 @@ Environment = RlcaEnvironment();
 % Environment.createagent(-55,-50,50,55);
 % Environment.createagent(55,50,-50,-55);
 
-for i = 1:1
+for i = 1:9
     Environment.createagent(100*(rand-rand),100*(rand-rand),100*(rand-rand),100*(rand-rand));
 end
 clear i

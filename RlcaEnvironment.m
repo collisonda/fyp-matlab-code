@@ -2,17 +2,20 @@ classdef RlcaEnvironment < handle
     %ENVIRONMENT Summary of this class goes here
     %   Detailed explanation goes here
     
+    %% RlcaEnvironment - Properties
     properties
-        Agents = cell(0);
-        nAgents = 0;
-        time = 0;
+        Agents = cell(0)
+        nAgents = 0
+        time = 0
         Gui
         agentsStatic
         nCollisions
         EventLog
     end
     
-    methods
+    %% RlcaEnvironment - Public Methods
+    methods (Access = public)
+        
         function obj = RlcaEnvironment()
             obj.EventLog = RlcaEventLog();
             obj.EventLog.createEvent('Initialising');
@@ -41,11 +44,22 @@ classdef RlcaEnvironment < handle
             obj.Gui = obj.Gui.generateagentgraphic(obj.Agents{iAgent});
         end
         
+    end
+    
+    %% RlcaEnvironment - Privte Methods
+    methods (Access = private)
+        
         function obj = updateagents(obj)
             for iAgent = 1:obj.nAgents
+                %TODO: Code to tell agent its neighbours
+                for jAgent = 1:obj.nAgents
+                    if iAgent ~= jAgent
+                        obj.Agents{iAgent} = obj.Agents{iAgent}.addneighbour(obj.Agents{jAgent});
+                    end
+                end
+
                 obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();
             end
-            
         end
         
         function [agentsStatic, nCollisions] = assessagents(obj)
