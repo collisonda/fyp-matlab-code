@@ -32,6 +32,7 @@ classdef RlcaEnvironment < handle
                 [obj.agentsStatic, obj.nCollisions] = obj.assessagents();
                 obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 t = t + EnvironmentConstants.TIME_STEP;
+                disp(obj.Agents{1}.Neighbours.position)
             end
             obj.EventLog.createEvent('Run complete');
         end

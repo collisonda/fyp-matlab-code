@@ -57,8 +57,10 @@ classdef RlcaAgent
         function obj = addneighbour(obj,Neighbour)
             iNeighbour = find(obj.neighbourIds == Neighbour.iAgent);
             
-            [nx, ny] = createcircle(obj.position(1),obj.position(2),...
-                AgentConstants.NEIGHBOURHOOD_RADIUS);
+%             [nx, ny] = createcircle(obj.position(1),obj.position(2),...
+%                 AgentConstants.NEIGHBOURHOOD_RADIUS);
+
+            [nx, ny] = createarc(obj.heading + pi/4,obj.heading - pi/4,obj.position(1),obj.position(2),AgentConstants.NEIGHBOURHOOD_RADIUS);
             isWithinNeighbourhood = inpolygon(Neighbour.position(1),Neighbour.position(2),nx,ny);
             
             if ~isempty(iNeighbour) && ~isWithinNeighbourhood % If an existing neighbour has exited the neighbourhood
