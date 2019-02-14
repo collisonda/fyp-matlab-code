@@ -67,12 +67,12 @@ classdef RlcaAgent
                 obj.Neighbours.velocity(iNeighbour,:) = [];
                 obj.Neighbours.radius(iNeighbour) = [];
                 obj.neighbourIds(iNeighbour) = [];
-                disp(['Agent ' num2str(obj.iAgent) ' Lost Agent ' num2str(Neighbour.iAgent)])
+                createevent(['Agent ' num2str(obj.iAgent) ' Lost Agent ' num2str(Neighbour.iAgent)])
             elseif isWithinNeighbourhood
                 if isempty(iNeighbour)
                     iNeighbour = length(obj.neighbourIds)+1;
                     obj.neighbourIds(end+1) = Neighbour.iAgent;
-                    disp(['Agent ' num2str(obj.iAgent) ' Detected Agent ' num2str(Neighbour.iAgent)])
+                    createevent(['Agent ' num2str(obj.iAgent) ' Detected Agent ' num2str(Neighbour.iAgent)])
                 end
                 obj.Neighbours.position(iNeighbour,:) = Neighbour.position;
                 obj.Neighbours.velocity(iNeighbour,:) = Neighbour.Velocity.actual;

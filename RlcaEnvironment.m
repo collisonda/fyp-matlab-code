@@ -10,21 +10,21 @@ classdef RlcaEnvironment < handle
         Gui
         agentsStatic
         nCollisions
-        EventLog
+        tStart
     end
     
     %% RlcaEnvironment - Public Methods
     methods (Access = public)
         
         function obj = RlcaEnvironment()
-            obj.EventLog = RlcaEventLog();
-            obj.EventLog.createEvent('Initialising');
+            createevent('Initialising');
             obj.Gui = RlcaGui();
         end
         
         function obj = run(obj)
             pause(0.5)
-            obj.EventLog.createEvent('Commencing run');
+            obj.tStart = datetime('now','Format','HH:mm:ss');
+            createevent('Commencing run');
             t = EnvironmentConstants.START_TIME;
             while nnz(obj.agentsStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME
                 obj.time = t;
@@ -33,7 +33,10 @@ classdef RlcaEnvironment < handle
                 obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 t = t + EnvironmentConstants.TIME_STEP;
             end
-            obj.EventLog.createEvent('Run complete');
+            createevent('Run complete');
+            tNow = datetime('now','Format','HH:mm:ss');
+            tElapsed = duration(tNow - obj.tStart);
+            createevent(['Time Elapsed - ' char(tElapsed)]);
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
