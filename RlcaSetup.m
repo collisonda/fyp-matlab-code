@@ -4,6 +4,10 @@ clc % Clear command line
 clear % Clear workspace
 close % Close any figures
 
+%%
+addpath('Constants')
+addpath('Misc')
+
 %% Configure graphical settings
 set(0, 'DefaultFigureRenderer', 'painters');
 opengl software

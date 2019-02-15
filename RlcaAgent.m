@@ -36,10 +36,10 @@ classdef RlcaAgent
         end
         
         function obj = timestep(obj)
-            %             % Agent follows cursor
-            %             A = get(0, 'PointerLocation');
-            %             obj.goal.x = (A(1)-1306)/4.69;
-            %             obj.goal.y = (A(2)-740)/4.69;
+%                         % Agent follows cursor
+%                         A = get(0, 'PointerLocation');
+%                         obj.goal(1) = (A(1)-1306)/4.69;
+%                         obj.goal(2) = (A(2)-740)/4.69;
             
             obj.reachedGoal = obj.checkreachedgoal();
             if ~obj.reachedGoal
