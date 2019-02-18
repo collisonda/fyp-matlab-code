@@ -7,9 +7,10 @@ classdef RlcaAgent
         iAgent % Number allocated to the agent
         position = zeros(1,2) % Current position of the agent
         Velocity = struct('desired',[],'actual',[]) % Velocity information
-        speed = []
+        speed = AgentConstants.MAX_VELOCITY
         radius = [] % Collision radius of the agent
         heading = [] % Agent direction in degrees
+        headingVector = []
         goal = zeros(1,2) % Goal position of the agent
         distanceToGoal = [] % Current distance to agent goal
         visionRadius = AgentConstants.VISION_RADIUS % Observable space around the agent
@@ -29,7 +30,7 @@ classdef RlcaAgent
             obj.color = obj.getcolor();
             obj.position = [x0, y0];
             obj.goal = [xg, yg];
-            obj.heading = obj.calcheading();
+            [obj.heading, obj.headingVector] = obj.calcheading();
             obj.Velocity.actual = obj.calcvelocity();
             obj.speed = norm(obj.Velocity.actual);
             obj.distanceToGoal = obj.calcdistancetogoal();
@@ -92,20 +93,34 @@ classdef RlcaAgent
         end
         
         function actualVelocity = calcvelocity(obj)
-            actualVelocity(1) = AgentConstants.MAX_VELOCITY*cos(obj.heading);
-            actualVelocity(2) = AgentConstants.MAX_VELOCITY*sin(obj.heading);
+            actualVelocity = obj.speed*obj.headingVector;
         end
         
         function position = calcposition(obj,deltaT)
-            position(1) = obj.position(1) + (obj.speed*deltaT)*...
-                cos(obj.heading);
-            position(2) = obj.position(2) + (obj.speed*deltaT)*...
-                sin(obj.heading);
+            position(1) = round(obj.position(1) + (obj.speed*deltaT)*...
+                cos(obj.heading),4);
+            position(2) = round(obj.position(2) + (obj.speed*deltaT)*...
+                sin(obj.heading),4);
         end
         
-        function heading = calcheading(obj)
+        function [heading, headingVector] = calcheading(obj)
             deltaP = obj.goal - obj.position;
-            heading = atan2(deltaP(2),deltaP(1));
+            headingVector = deltaP/norm(deltaP);
+            prevHeading = obj.heading;
+            if ~isempty(obj.Neighbours.position)
+               heading = obj.heading + pi/150; 
+            else
+                heading = atan2(deltaP(2),deltaP(1));
+            end
+            
+            if (abs(prevHeading-heading) > pi/150)
+                if prevHeading < heading
+                   heading = prevHeading + pi/150; 
+                else
+                    heading = prevHeading - pi/150; 
+                end             
+            end           
+            
         end
         
         function reachedGoal = checkreachedgoal(obj)

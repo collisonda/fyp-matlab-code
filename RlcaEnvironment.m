@@ -23,7 +23,7 @@ classdef RlcaEnvironment < handle
         
         function obj = run(obj)
             pause(0.5)
-            obj.tStart = datetime('now','Format','HH:mm:ss');
+            tic
             createevent('Commencing run');
             t = EnvironmentConstants.START_TIME;
             while nnz(obj.agentsStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME
@@ -34,9 +34,11 @@ classdef RlcaEnvironment < handle
                 t = t + EnvironmentConstants.TIME_STEP;
             end
             createevent('Run complete');
-            tNow = datetime('now','Format','HH:mm:ss');
-            tElapsed = duration(tNow - obj.tStart);
-            createevent(['Time Elapsed - ' char(tElapsed)]);
+%             tNow = datetime('now','Format','HH:mm:ss');
+            tElapsed = toc;
+            tElapsedSim = t;
+            createevent(['Time Elapsed - ' num2str(tElapsed)]);
+            createevent(['Simulation Time Elapsed - ' num2str(tElapsedSim)]);
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
@@ -49,7 +51,7 @@ classdef RlcaEnvironment < handle
         
     end
     
-    %% RlcaEnvironment - Privte Methods
+    %% RlcaEnvironment - Private Methods
     methods (Access = private)
         
         function obj = updateagents(obj)

@@ -9,8 +9,8 @@ addpath('Constants')
 addpath('Misc')
 
 %% Configure graphical settings
-set(0, 'DefaultFigureRenderer', 'painters');
-opengl software
+set(0, 'DefaultFigureRenderer', 'opengl');
+opengl hardware
 
 %% Initialise Environment
 Environment = RlcaEnvironment();
@@ -18,10 +18,16 @@ Environment = RlcaEnvironment();
 %% Create Agents
 % TODO: Have a user option to select the scenario (i.e. 2 agents crossing
 % paths, or 4 agents etc.)
-Environment.createagent(-55,-50,50,55);
-Environment.createagent(55,50,-50,-55);
+Environment.createagent(-50,-50,50,50);
+Environment.createagent(50,50,-50,-50);
+% Environment.createagent(-50,50,50,-50);
+% Environment.createagent(50,-50,-50,50);
+% Environment.createagent(0,70.7107,0,-70.7107);
+% Environment.createagent(0,-70.7107,0,70.7107);
+% Environment.createagent(-70.7107,0,70.7107,0);
+% Environment.createagent(70.7107,0,-70.7107,0);
 
-% for i = 1:9
+% for i = 1:4
 %     Environment.createagent(100*(rand-rand),100*(rand-rand),100*(rand-rand),100*(rand-rand));
 % end
 % clear i
