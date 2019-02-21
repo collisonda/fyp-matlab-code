@@ -34,11 +34,11 @@ classdef RlcaEnvironment < handle
                 t = t + EnvironmentConstants.TIME_STEP;
             end
             createevent('Run complete');
-%             tNow = datetime('now','Format','HH:mm:ss');
             tElapsed = toc;
             tElapsedSim = t;
-            createevent(['Time Elapsed - ' num2str(tElapsed)]);
-            createevent(['Simulation Time Elapsed - ' num2str(tElapsedSim)]);
+            createevent(['Real Time Elapsed:       ' num2str(tElapsed) 's']);
+            createevent(['Simulation Time Elapsed: ' num2str(tElapsedSim) 's']);
+            createevent(['Real:Simulation Ratio:   ' num2str(tElapsedSim/tElapsed)]);
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)

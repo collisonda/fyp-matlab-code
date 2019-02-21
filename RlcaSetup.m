@@ -1,10 +1,9 @@
-
 %% Housekeeping
 clc % Clear command line
 clear % Clear workspace
 close % Close any figures
 
-%%
+%% Add folders to path
 addpath('Constants')
 addpath('Misc')
 
