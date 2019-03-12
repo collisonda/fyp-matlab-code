@@ -8,9 +8,8 @@ classdef RlcaEnvironment < handle
         nAgents = 0
         time = 0
         Gui
-        agentsStatic
+        isAgentStatic
         nCollisions
-        tStart
     end
     
     %% RlcaEnvironment - Public Methods
@@ -21,15 +20,15 @@ classdef RlcaEnvironment < handle
             obj.Gui = RlcaGui();
         end
         
-        function obj = run(obj)
+        function obj = runsimulation(obj)
             pause(0.5)
             tic
             createevent('Commencing run');
             t = EnvironmentConstants.START_TIME;
-            while nnz(obj.agentsStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME
+            while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME
                 obj.time = t;
                 obj = obj.updateagents();
-                [obj.agentsStatic, obj.nCollisions] = obj.assessagents();
+                [obj.isAgentStatic, obj.nCollisions] = obj.assessagents();
                 obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 t = t + EnvironmentConstants.TIME_STEP;
             end
@@ -67,12 +66,12 @@ classdef RlcaEnvironment < handle
             end
         end
         
-        function [agentsStatic, nCollisions] = assessagents(obj)
+        function [isAgentStatic, nCollisions] = assessagents(obj)
             nCollisions = 0;
-            agentsStatic = zeros(obj.nAgents,1);
+            isAgentStatic = zeros(obj.nAgents,1);
             for iAgent = 1:obj.nAgents
-                agentsStatic(iAgent) = obj.Agents{iAgent}.reachedGoal || obj.Agents{iAgent}.collided;
-                if obj.Agents{iAgent}.collided
+                isAgentStatic(iAgent) = obj.Agents{iAgent}.isAtGoal || obj.Agents{iAgent}.hasCollided;
+                if obj.Agents{iAgent}.hasCollided
                     nCollisions = nCollisions + 1;
                 end
             end

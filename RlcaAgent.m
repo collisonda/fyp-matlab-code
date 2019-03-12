@@ -7,17 +7,18 @@ classdef RlcaAgent
         iAgent % Number allocated to the agent
         position = zeros(1,2) % Current position of the agent
         Velocity = struct('desired',[],'actual',[]) % Velocity information
+        preferredVelocity = [0,0];
         speed = AgentConstants.MAX_VELOCITY
         radius = [] % Collision radius of the agent
         heading = [] % Agent direction in degrees
         headingVector = []
         goal = zeros(1,2) % Goal position of the agent
         distanceToGoal = [] % Current distance to agent goal
-        visionRadius = AgentConstants.VISION_RADIUS % Observable space around the agent
+        neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS % Observable space around the agent
         Neighbours = struct('position',[],'velocity',[],'radius',[]) % Information on agents currently within its neighbourhood
         neighbourIds = []
-        reachedGoal = 0 % Boolean to show if the agent has reached its intended goal
-        collided = 0 % Boolean to show if the agent has been in a collision
+        isAtGoal = 0 % Boolean to show if the agent has reached its intended goal
+        hasCollided = 0 % Boolean to show if the agent has been in a collision
         color % Colour of the agent on the plot
     end
     
@@ -42,8 +43,8 @@ classdef RlcaAgent
 %                         obj.goal(1) = (A(1)-1306)/4.69;
 %                         obj.goal(2) = (A(2)-740)/4.69;
             
-            obj.reachedGoal = obj.checkreachedgoal();
-            if ~obj.reachedGoal
+            obj.isAtGoal = obj.checkisAtGoal();
+            if ~obj.isAtGoal
                 obj.heading = obj.calcheading();
                 obj.Velocity.actual = obj.calcvelocity();
                 obj.speed = norm(obj.Velocity.actual);
@@ -59,7 +60,7 @@ classdef RlcaAgent
             iNeighbour = find(obj.neighbourIds == Neighbour.iAgent);
             [nx, ny] = createarc(obj.heading + AgentConstants.VISION_ANGLE,...
                 obj.heading - AgentConstants.VISION_ANGLE,obj.position(1),...
-                obj.position(2),AgentConstants.VISION_RADIUS);
+                obj.position(2),AgentConstants.NEIGHBOURHOOD_RADIUS);
             isWithinNeighbourhood = inpolygon(Neighbour.position(1),...
                 Neighbour.position(2),nx,ny);
             
@@ -120,16 +121,15 @@ classdef RlcaAgent
                     heading = prevHeading - pi/150; 
                 end             
             end           
-            
         end
         
-        function reachedGoal = checkreachedgoal(obj)
+        function isAtGoal = checkisAtGoal(obj)
             deltaP = obj.goal - obj.position;
             
             deltaX = abs(deltaP(1));
             deltaY = abs(deltaP(2));
             
-            reachedGoal = deltaX <= AgentConstants.GOAL_MARGIN &&...
+            isAtGoal = deltaX <= AgentConstants.GOAL_MARGIN &&...
                 deltaY <= AgentConstants.GOAL_MARGIN;
         end
         
