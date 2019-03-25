@@ -105,22 +105,24 @@ classdef RlcaAgent
         end
         
         function [heading, headingVector] = calcheading(obj)
+            MAX_DELTA_THETA = pi/50;
             deltaP = obj.goal - obj.position;
             headingVector = deltaP/norm(deltaP);
             prevHeading = obj.heading;
-            if ~isempty(obj.Neighbours.position)
-               heading = obj.heading + pi/150; 
-            else
-                heading = atan2(deltaP(2),deltaP(1));
-            end
-            
-            if (abs(prevHeading-heading) > pi/150)
-                if prevHeading < heading
-                   heading = prevHeading + pi/150; 
-                else
-                    heading = prevHeading - pi/150; 
-                end             
-            end           
+            heading = atan2(deltaP(2),deltaP(1));
+%             if ~isempty(obj.Neighbours.position)
+%                heading = obj.heading + MAX_DELTA_THETA; 
+%             else
+%                 heading = atan2(deltaP(2),deltaP(1));
+%             end
+%             
+%             if (abs(prevHeading-heading) > MAX_DELTA_THETA)
+%                 if prevHeading < heading
+%                    heading = prevHeading + MAX_DELTA_THETA; 
+%                 else
+%                     heading = prevHeading - MAX_DELTA_THETA; 
+%                 end             
+%             end           
         end
         
         function isAtGoal = checkisAtGoal(obj)

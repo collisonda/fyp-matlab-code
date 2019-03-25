@@ -1,5 +1,10 @@
 function createevent(string)
 tNow = datetime('now','Format','HH:mm:ss');
-disp(['[' char(tNow) '] ' string]);
+if nargin == 0
+    disp(['[' char(tNow) '] ***']);
+else
+    disp(['[' char(tNow) '] ' string]);
+end
+
 end
 

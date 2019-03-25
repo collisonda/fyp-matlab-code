@@ -23,6 +23,7 @@ classdef RlcaEnvironment < handle
         function obj = runsimulation(obj)
             pause(0.5)
             tic
+            createevent();
             createevent('Commencing run');
             t = EnvironmentConstants.START_TIME;
             while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME
@@ -33,11 +34,12 @@ classdef RlcaEnvironment < handle
                 t = t + EnvironmentConstants.TIME_STEP;
             end
             createevent('Run complete');
+            createevent();
             tElapsed = toc;
             tElapsedSim = t;
-            createevent(['Real Time Elapsed:       ' num2str(tElapsed) 's']);
-            createevent(['Simulation Time Elapsed: ' num2str(tElapsedSim) 's']);
-            createevent(['Real:Simulation Ratio:   ' num2str(tElapsedSim/tElapsed)]);
+            createevent(['Real Time Elapsed        ' num2str(tElapsed) ' s']);
+            createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
+            createevent(['Real:Simulation Ratio    ' num2str(tElapsedSim/tElapsed)]);
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
