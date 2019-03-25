@@ -17,6 +17,8 @@ classdef RlcaGui < handle
         AgentVision
         colourSettings
         time
+        restartButton
+        closeButton
     end
     
     %% RlcaGui - Public Methods
@@ -29,6 +31,12 @@ classdef RlcaGui < handle
             obj.Window = figure('Name','RLCA GUI','Position',windowSettings,...
                 'GraphicsSmoothing','on','Resize','off');
             obj.setupenvironmentplot();
+            obj.restartButton = uicontrol(obj.Window,'Style','PushButton',...
+                'Units','Normalized','Position',[0.87,0.208,0.08,0.08],...
+                'String','Restart','FontWeight','bold','Callback',@(src,event)obj.restart);
+            obj.closeButton = uicontrol(obj.Window,'Style','PushButton',...
+                'Units','Normalized','Position',[0.87,0.108,0.08,0.08],...
+                'String','Close','FontWeight','bold','Callback',@(src,event)obj.closegui);
         end
         
         function obj = generateagentgraphic(obj,Agent)
@@ -80,13 +88,23 @@ classdef RlcaGui < handle
                 obj.AgentGoals{iAgent}.XData = Agents{iAgent}.goal(1);
                 obj.AgentGoals{iAgent}.YData = Agents{iAgent}.goal(2);
                 [nx, ny] = createarc(Agents{iAgent}.heading + ...
-                AgentConstants.VISION_ANGLE,Agents{iAgent}.heading - ...
-                AgentConstants.VISION_ANGLE,Agents{iAgent}.position(1),...
-                Agents{iAgent}.position(2),AgentConstants.NEIGHBOURHOOD_RADIUS);
+                    AgentConstants.VISION_ANGLE,Agents{iAgent}.heading - ...
+                    AgentConstants.VISION_ANGLE,Agents{iAgent}.position(1),...
+                    Agents{iAgent}.position(2),AgentConstants.NEIGHBOURHOOD_RADIUS);
                 obj.AgentVision{iAgent}.XData = nx;
                 obj.AgentVision{iAgent}.YData = ny;
             end
             drawnow
+        end
+        
+        function restart(src,event)
+            RlcaSetup;
+            return
+        end
+        
+        function closegui(src,event)
+            close all
+            return
         end
         
     end
@@ -108,6 +126,7 @@ classdef RlcaGui < handle
             obj.EnvironmentPlot.Box = 'on';
             pbaspect([1 1 1])
         end
+        
     end
     
     %% RlcaGui - Static Methods

@@ -18,6 +18,7 @@ Environment = RlcaEnvironment();
 %% Initialise Q
 load('Q.mat');
 global Q
+Q = Q + 1; % test
 % TODO: Setup Q so that for each state, every action has a Q value
 % associated with it.
 % A state is the neighbour's position relative to the position of the
@@ -37,40 +38,30 @@ global Q
 %    to the collision.
 
 %% Create Agents
-% TODO: Have a user option to select the scenario (i.e. 2 agents crossing
-% paths, or 4 agents etc.)
 oldCd = cd;
 cd Scenarios
 d = dir('*.m');
 cd(oldCd);
 fn = {d.name};
-idx = listdlg('ListString',fn,'PromptString','Select a scenario:','SelectionMode','single');
+iScenario = listdlg('ListString',fn,'PromptString','Select a scenario:','SelectionMode','single');
 
-switch (idx)
+% Run the selected scenario.
+switch (iScenario)
     case 1
         crossing1;
     case 2
         crossing2;
     case 3
         headon;
+    case 4
+        random;
     otherwise
-        
+        error('Invalid Scenario')        
 end
-% Environment.createagent(-50,-50,50,50);
-% Environment.createagent(50,50,-50,-50);
-% Environment.createagent(-50,50,50,-50);
-% Environment.createagent(50,-50,-50,50);
-% Environment.createagent(0,70.7107,0,-70.7107);
-% Environment.createagent(0,-70.7107,0,70.7107);
-% Environment.createagent(-70.7107,0,70.7107,0);
-% Environment.createagent(70.7107,0,-70.7107,0);
 
-% for i = 1:4
-%     Environment.createagent(100*(rand-rand),100*(rand-rand),100*(rand-rand),100*(rand-rand));
-% end
-% clear i
+%% Clear variables
+clear d fn oldCd iScenario
 
-clear d fn oldCd tf
 %% Run Simulation
 Environment = Environment.runsimulation();
 
