@@ -14,6 +14,10 @@ opengl hardware
 %% Initialise Environment
 Environment = RlcaEnvironment();
 
+%% Initialise Q
+load('Q.mat');
+global Q
+
 %% Create Agents
 % TODO: Have a user option to select the scenario (i.e. 2 agents crossing
 % paths, or 4 agents etc.)
@@ -33,3 +37,6 @@ Environment.createagent(50,50,-50,-50);
 
 %% Run Simulation
 Environment = Environment.run();
+
+%% Save new Q
+save('Q.mat','Q');
