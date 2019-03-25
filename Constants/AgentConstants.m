@@ -4,7 +4,7 @@ classdef AgentConstants < handle
     
     properties (Constant)
         RADIUS = 8;
-        VISION_RADIUS = 60;
+        NEIGHBOURHOOD_RADIUS = 60;
         VISION_ANGLE = pi/3;
         GOAL_MARGIN = 0.5;
         MAX_VELOCITY = 6;

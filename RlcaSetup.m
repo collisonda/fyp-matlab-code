@@ -21,8 +21,25 @@ global Q
 %% Create Agents
 % TODO: Have a user option to select the scenario (i.e. 2 agents crossing
 % paths, or 4 agents etc.)
-Environment.createagent(-50,-50,50,50);
-Environment.createagent(50,50,-50,-50);
+oldCd = cd;
+cd Scenarios
+d = dir('*.m');
+cd(oldCd);
+fn = {d.name};
+[idx,tf] = listdlg('ListString',fn,'PromptString','Select a scenario:','SelectionMode','single');
+
+switch (idx)
+    case 1
+        crossing1;
+    case 2
+        crossing2;
+    case 3
+        headon;
+    otherwise
+        
+end
+% Environment.createagent(-50,-50,50,50);
+% Environment.createagent(50,50,-50,-50);
 % Environment.createagent(-50,50,50,-50);
 % Environment.createagent(50,-50,-50,50);
 % Environment.createagent(0,70.7107,0,-70.7107);
