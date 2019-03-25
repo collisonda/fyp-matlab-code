@@ -18,7 +18,6 @@ Environment = RlcaEnvironment();
 %% Initialise Q
 load('Q.mat');
 global Q
-Q = Q + 1; % test
 % TODO: Setup Q so that for each state, every action has a Q value
 % associated with it.
 % A state is the neighbour's position relative to the position of the

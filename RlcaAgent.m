@@ -8,7 +8,7 @@ classdef RlcaAgent
         position = zeros(1,2) % Current position of the agent
         Velocity = struct('desired',[],'actual',[]) % Velocity information
         preferredVelocity = [0,0];
-        speed = AgentConstants.MAX_VELOCITY
+        speed = AgentConstants.MAX_SPEED
         radius = [] % Collision radius of the agent
         heading = [] % Agent direction in degrees
         headingVector = []

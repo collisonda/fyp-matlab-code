@@ -7,7 +7,7 @@ classdef AgentConstants < handle
         NEIGHBOURHOOD_RADIUS = 60;
         VISION_ANGLE = pi/3;
         GOAL_MARGIN = 0.5;
-        MAX_VELOCITY = 6;
+        MAX_SPEED = 6;
         COLOR_ORDER = [0 0.1 1
             1 0 0.2
             0.4 0.9 0
