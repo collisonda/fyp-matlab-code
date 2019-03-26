@@ -129,11 +129,11 @@ classdef RlcaAgent
             end
         end
         
-        function npTranslated = translateneighbourposition(~,p,np,h,gh)
+        function npTranslated = translateneighbourposition(obj,p,np,h,gh)
             % TODO: Translate the position of the neighbour to be relative
             % to the agent's position and in the direction of its goal.
-            deltaPNeighbour = (p - np);
-            deltaH = h-gh;
+            deltaPNeighbour = (np - p);
+            deltaH = -gh+pi/2;
             
             rotationMatrix = [cos(deltaH), -sin(deltaH); sin(deltaH), cos(deltaH)];
             
