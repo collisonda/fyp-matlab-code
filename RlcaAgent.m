@@ -13,6 +13,7 @@ classdef RlcaAgent
         heading = [] % Agent direction in degrees
         headingVector = []
         goal = zeros(1,2) % Goal position of the agent
+        prevDistanceToGoal = []
         distanceToGoal = [] % Current distance to agent goal
         neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS % Observable space around the agent
         Neighbours = struct('position',[],'velocity',[],'radius',[]) % Information on agents currently within its neighbourhood
@@ -20,8 +21,10 @@ classdef RlcaAgent
         isAtGoal = 0 % Boolean to show if the agent has reached its intended goal
         hasCollided = 0 % Boolean to show if the agent has been in a collision
         color % Colour of the agent on the plot
-        PastStates = [0 0 0];
-        PastActions = [0 0 0];
+        stateId = -1;
+        PastStates = [-1 -1 1];
+        actionId = -1;
+        PastActions = [-1 -1 -1];
     end
     
     %% RlcaAgent - Public Methods
@@ -34,24 +37,27 @@ classdef RlcaAgent
             obj.position = [x0, y0];
             obj.goal = [xg, yg];
             [obj.heading, obj.headingVector] = obj.calcheading();
-            obj.Velocity = obj.calcvelocity();
-            obj.speed = norm(obj.Velocity);
+%             obj.Velocity = obj.calcvelocity();
+%             obj.speed = norm(obj.Velocity);
             obj.distanceToGoal = obj.calcdistancetogoal();
         end
         
         function obj = timestep(obj)
-           
+            
             obj.isAtGoal = obj.checkisAtGoal();
             
-            if ~obj.isAtGoal
+            if ~obj.isAtGoal                
+                [obj.stateId] = obj.getstate();
+                obj.PastStates = [obj.stateId, obj.PastStates(1), obj.PastStates(2)];
                 
-                obj = obj.calcaction();
+                [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
+                obj.PastActions = [obj.actionId, obj.PastActions(1), obj.PastActions(2)]; 
                 
-                obj.heading = obj.calcheading();
-                obj.Velocity = obj.calcvelocity();
                 obj.speed = norm(obj.Velocity);
                 
                 obj.position = calcposition(obj,EnvironmentConstants.TIME_STEP);
+                
+                obj.prevDistanceToGoal = obj.distanceToGoal;
                 obj.distanceToGoal = obj.calcdistancetogoal();
             else
                 obj.speed = 0;
@@ -90,23 +96,57 @@ classdef RlcaAgent
     %% RlcaAgent - Private Methods
     methods (Access = private)
         
-        function obj = calcaction(obj)
-            if isempty(obj.neighbourIds) % No neighbours to worry about, go full speed at the goal.
-                obj = obj.gotogoal();
+        function [actionId, heading, Velocity] = calcaction(obj)
+            if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
+                [actionId, heading, Velocity] = obj.calcgoalaction();
             else
-                
+                % Choose an action and evaluate
             end
         end
         
-        function obj = gotogoal(obj)
+        function [stateId] = getstate(obj)
+            global S
+            if isempty(obj.neighbourIds)
+                stateId = 0;                
+            else
+                stateId = 0; %debugging, remove
+                
+                p = obj.position;
+                np = obj.Neighbours.position;
+                h = obj.heading;
+                deltaP = obj.goal - obj.position;
+                gh = atan2(deltaP(2),deltaP(1));
+                
+                npTranslated = obj.translateneighbourposition(p,np,h,gh);
+                
+                npTranslated = 10*round(npTranslated/10);
+                
+                matS = [S{:}];
+                stateId = strfind(matS,npTranslated);
+                if length(stateId) > 1
+                    stateId = stateId(2);
+                end
+            end
+        end
+        
+        function npTranslated = translateneighbourposition(~,p,np,h,gh)
+            % TODO: Translate the position of the neighbour to be relative
+            % to the agent's position and in the direction of its goal.
+            deltaPNeighbour = (p - np);
+            deltaH = h-gh;
+            
+            rotationMatrix = [cos(deltaH), -sin(deltaH); sin(deltaH), cos(deltaH)];
+            
+            npTranslated = (rotationMatrix*deltaPNeighbour')';
+
+        end
+        
+        function [actionId, heading, Velocity] = calcgoalaction(obj)
             deltaP = obj.goal - obj.position;
-            obj.headingVector = deltaP/norm(deltaP);
-            obj.heading = atan2(deltaP(2),deltaP(1));
-            obj.Velocity = round(2*obj.headingVector*AgentConstants.MAX_SPEED)/2;
-            actionId = obj.getactionid(obj.Velocity);
-            obj.PastActions = [actionId, obj.PastActions(1), obj.PastActions(2)];
-            stateId = 0;
-            obj.PastStates = [stateId, obj.PastStates(1), obj.PastStates(2)];
+            headingVector = deltaP/norm(deltaP);
+            heading = atan2(deltaP(2),deltaP(1));
+            Velocity = round(2*headingVector*AgentConstants.MAX_SPEED)/2;
+            actionId = obj.getactionid(Velocity);           
         end
         
         function actionId = getactionid(~,Velocity)
@@ -114,7 +154,7 @@ classdef RlcaAgent
             matA = [A{:}];
             actionId = (strfind(matA,Velocity) + 1)/2;
             if length(actionId) > 1
-               actionId = actionId(2); 
+                actionId = actionId(2);
             end
         end
         
@@ -136,24 +176,10 @@ classdef RlcaAgent
         end
         
         function [heading, headingVector] = calcheading(obj)
-            MAX_DELTA_THETA = pi/50;
             deltaP = obj.goal - obj.position;
             headingVector = deltaP/norm(deltaP);
-            prevHeading = obj.heading;
             heading = atan2(deltaP(2),deltaP(1));
-%             if ~isempty(obj.Neighbours.position)
-%                heading = obj.heading + MAX_DELTA_THETA; 
-%             else
-%                 heading = atan2(deltaP(2),deltaP(1));
-%             end
-%             
-%             if (abs(prevHeading-heading) > MAX_DELTA_THETA)
-%                 if prevHeading < heading
-%                    heading = prevHeading + MAX_DELTA_THETA; 
-%                 else
-%                     heading = prevHeading - MAX_DELTA_THETA; 
-%                 end             
-%             end           
+            
         end
         
         function isAtGoal = checkisAtGoal(obj)
