@@ -15,7 +15,11 @@ opengl hardware
 %% Initialise Environment
 Environment = RlcaEnvironment();
 
-%% Initialise Q
+%% Initialise S, A, Q
+global S
+global A
+S = createstatespace;
+A = createactionspace;
 load('Q.mat');
 global Q
 % TODO: Setup Q so that for each state, every action has a Q value
@@ -36,7 +40,7 @@ global Q
 %    their Q values reduced too, V2 more than V1 as it was closer in time
 %    to the collision.
 
-%% Create Agents
+%% 
 oldCd = cd;
 cd Scenarios
 d = dir('*.m');

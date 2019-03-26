@@ -6,7 +6,7 @@ classdef RlcaAgent
     properties
         iAgent % Number allocated to the agent
         position = zeros(1,2) % Current position of the agent
-        Velocity = struct('desired',[],'actual',[]) % Velocity information
+        Velocity = [0, 0]; % Velocity information
         preferredVelocity = [0,0];
         speed = AgentConstants.MAX_SPEED
         radius = [] % Collision radius of the agent
@@ -20,6 +20,8 @@ classdef RlcaAgent
         isAtGoal = 0 % Boolean to show if the agent has reached its intended goal
         hasCollided = 0 % Boolean to show if the agent has been in a collision
         color % Colour of the agent on the plot
+        PastStates = [0 0 0];
+        PastActions = [0 0 0];
     end
     
     %% RlcaAgent - Public Methods
@@ -32,22 +34,23 @@ classdef RlcaAgent
             obj.position = [x0, y0];
             obj.goal = [xg, yg];
             [obj.heading, obj.headingVector] = obj.calcheading();
-            obj.Velocity.actual = obj.calcvelocity();
-            obj.speed = norm(obj.Velocity.actual);
+            obj.Velocity = obj.calcvelocity();
+            obj.speed = norm(obj.Velocity);
             obj.distanceToGoal = obj.calcdistancetogoal();
         end
         
         function obj = timestep(obj)
-%                         % Agent follows cursor
-%                         A = get(0, 'PointerLocation');
-%                         obj.goal(1) = (A(1)-1306)/4.69;
-%                         obj.goal(2) = (A(2)-740)/4.69;
-            
+           
             obj.isAtGoal = obj.checkisAtGoal();
+            
             if ~obj.isAtGoal
+                
+                obj = obj.calcaction();
+                
                 obj.heading = obj.calcheading();
-                obj.Velocity.actual = obj.calcvelocity();
-                obj.speed = norm(obj.Velocity.actual);
+                obj.Velocity = obj.calcvelocity();
+                obj.speed = norm(obj.Velocity);
+                
                 obj.position = calcposition(obj,EnvironmentConstants.TIME_STEP);
                 obj.distanceToGoal = obj.calcdistancetogoal();
             else
@@ -77,7 +80,7 @@ classdef RlcaAgent
                     createevent(['Agent ' num2str(obj.iAgent) ' Detected Agent ' num2str(Neighbour.iAgent)])
                 end
                 obj.Neighbours.position(iNeighbour,:) = Neighbour.position;
-                obj.Neighbours.velocity(iNeighbour,:) = Neighbour.Velocity.actual;
+                obj.Neighbours.velocity(iNeighbour,:) = Neighbour.Velocity;
                 obj.Neighbours.radius(iNeighbour,1) = Neighbour.radius;
             end
         end
@@ -86,6 +89,34 @@ classdef RlcaAgent
     
     %% RlcaAgent - Private Methods
     methods (Access = private)
+        
+        function obj = calcaction(obj)
+            if isempty(obj.neighbourIds) % No neighbours to worry about, go full speed at the goal.
+                obj = obj.gotogoal();
+            else
+                
+            end
+        end
+        
+        function obj = gotogoal(obj)
+            deltaP = obj.goal - obj.position;
+            obj.headingVector = deltaP/norm(deltaP);
+            obj.heading = atan2(deltaP(2),deltaP(1));
+            obj.Velocity = round(2*obj.headingVector*AgentConstants.MAX_SPEED)/2;
+            actionId = obj.getactionid(obj.Velocity);
+            obj.PastActions = [actionId, obj.PastActions(1), obj.PastActions(2)];
+            stateId = 0;
+            obj.PastStates = [stateId, obj.PastStates(1), obj.PastStates(2)];
+        end
+        
+        function actionId = getactionid(~,Velocity)
+            global A
+            matA = [A{:}];
+            actionId = (strfind(matA,Velocity) + 1)/2;
+            if length(actionId) > 1
+               actionId = actionId(2); 
+            end
+        end
         
         function distanceToGoal = calcdistancetogoal(obj)
             deltaX = abs(obj.position(1) - obj.goal(1));

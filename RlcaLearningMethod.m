@@ -12,8 +12,8 @@ classdef RlcaLearningMethod < handle
     
     methods
         function obj = RlcaLearningMethod()
-            %RLCA Construct an instance of this class
-            %   Detailed explanation goes here
+            
+            %% Create state space
             [x,y] = createarc(-AgentConstants.VISION_ANGLE+pi/2,AgentConstants.VISION_ANGLE+pi/2,0,0,AgentConstants.NEIGHBOURHOOD_RADIUS);
             
             for i = 1:13
@@ -27,6 +27,7 @@ classdef RlcaLearningMethod < handle
                 end
             end
             
+            %% Create action space
             X = -AgentConstants.MAX_SPEED:0.5:AgentConstants.MAX_SPEED;
             Y = -AgentConstants.MAX_SPEED:0.5:AgentConstants.MAX_SPEED;
             obj.ActionSpace = cell(length(X),length(Y));
@@ -42,10 +43,10 @@ classdef RlcaLearningMethod < handle
                 end
             end
             
-            temp = obj.Q == 0;
-            obj.Q(temp) = NaN;
-            
-            %              obj.qHeatmap = heatmap(-AgentConstants.MAX_SPEED:0.5:AgentConstants.MAX_SPEED,-AgentConstants.MAX_SPEED:0.5:AgentConstants.MAX_SPEED,obj.Q,'XLabel','X Velocity','YLabel','Y Velocity','MissingDataLabel','','Colormap',hot);
+            global A S
+            A = obj.ActionSpace;
+            S = obj.StateSpace;
+
         end
         
     end
