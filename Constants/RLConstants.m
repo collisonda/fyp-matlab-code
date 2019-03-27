@@ -5,6 +5,8 @@ classdef RLConstants < handle
     properties (Constant)
         DISCOUNT_FACTOR = 0.9;
         PREVIOUS_ACTION_DISCOUNT = 0.9;
+        INITIAL_EPSILON = 0.5;
+        EPSILON_DECAY_RATE = 0.98;
     end
 
 end

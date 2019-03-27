@@ -9,6 +9,8 @@ for iX = 1:length(X)
         y = X(iY);
         if norm([x,y]) <= AgentConstants.MAX_SPEED
            A{iY,iX} = [x,-y];
+        else
+            A{iY,iX} = [NaN, NaN];
         end
     end
 end

@@ -22,9 +22,10 @@ classdef RlcaAgent
         hasCollided = 0 % Boolean to show if the agent has been in a collision
         color % Colour of the agent on the plot
         stateId = -1;
-        PastStates = -1*ones(1,10);
+        PastStates = -1*ones(1,20);
         actionId = -1;
-        PastActions = -1*ones(1,10);
+        PastActions = -1*ones(1,20);
+        epsilon = RLConstants.INITIAL_EPSILON
     end
     
     %% RlcaAgent - Public Methods
@@ -37,8 +38,8 @@ classdef RlcaAgent
             obj.position = [x0, y0];
             obj.goal = [xg, yg];
             [obj.heading, obj.headingVector] = obj.calcheading();
-%             obj.Velocity = obj.calcvelocity();
-%             obj.speed = norm(obj.Velocity);
+            %             obj.Velocity = obj.calcvelocity();
+            %             obj.speed = norm(obj.Velocity);
             obj.distanceToGoal = obj.calcdistancetogoal();
         end
         
@@ -46,12 +47,12 @@ classdef RlcaAgent
             
             obj.isAtGoal = obj.checkisatgoal();
             
-            if ~obj.isAtGoal                
+            if ~obj.isAtGoal
                 [obj.stateId] = obj.getstate();
                 obj.PastStates = [obj.stateId, obj.PastStates(1:end-1)];
                 
-                [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
-                obj.PastActions = [obj.actionId, obj.PastActions(1:end-1)]; 
+                [obj.actionId, obj.heading, obj.Velocity, obj.epsilon] = obj.calcaction();
+                obj.PastActions = [obj.actionId, obj.PastActions(1:end-1)];
                 
                 obj.speed = norm(obj.Velocity);
                 
@@ -96,37 +97,49 @@ classdef RlcaAgent
     %% RlcaAgent - Private Methods
     methods (Access = private)
         
-        function [actionId, heading, Velocity] = calcaction(obj)
+        function [actionId, heading, Velocity, epsilon] = calcaction(obj)
             global Q
             global A
+            epsilon = obj.epsilon;
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [actionId, heading, Velocity] = obj.calcgoalaction();
             else
                 % Choose an action
-                sQ = Q(:,:,obj.stateId);
-                M = max(max(sQ));
-                [r,c] = find(sQ==M);
-                if length(r) > 1 % Multiple max Qs, randomly select one
-                    selection = round(rand*length(r));
-                    if selection == 0
-                        selection = 1;
+                if (rand > epsilon) % Choose best option
+                    sQ = Q(:,:,obj.stateId);
+                    M = max(max(sQ));
+                    [r,c] = find(sQ==M);
+                    if length(r) > 1 % Multiple max Qs, randomly select one
+                        selection = round(rand*length(r));
+                        if selection == 0
+                            selection = 1;
+                        end
+                        r = r(selection);
+                        c = c(selection);
                     end
-                    r = r(selection);
-                    c = c(selection);
+                    Velocity = A{r,c};                    
+                else
+                    % Choose random action
+                    Velocity = [NaN, NaN];
+                    while isnan(Velocity)
+                        r = round(1 + rand*(size(A,1)-1));
+                        c = round(1 + rand*(size(A,2)-1));
+                        Velocity = A{r,c};
+                    end
                 end
-                Velocity = A{r,c};
-                actionId = obj.getactionid(Velocity);
-                heading = atan2(Velocity(2),Velocity(1));
                 
-                % Find best action based on Q values of state
+                actionId = obj.getactionid(Velocity);
+                    heading = atan2(Velocity(2),Velocity(1));
+                
+                epsilon = obj.epsilon * RLConstants.EPSILON_DECAY_RATE;
             end
         end
         
         function [stateId] = getstate(obj)
             global S
             if isempty(obj.neighbourIds)
-                stateId = 0;                
-            else                
+                stateId = 0;
+            else
                 p = obj.position;
                 np = obj.Neighbours.position;
                 h = obj.heading;
@@ -137,12 +150,21 @@ classdef RlcaAgent
                 
                 npTranslated = 10*round(npTranslated/10);
                 
+                if norm(npTranslated) > 60
+                    signs = npTranslated./abs(npTranslated);
+                    npTranslated = abs(npTranslated);
+                    [~,idx] = max(npTranslated);
+                    npTranslated(idx) = npTranslated(idx) - 10;
+                    npTranslated = npTranslated.*signs;
+                end
+                
                 matS = [S{:}];
-            stateId = (strfind(matS,npTranslated) + 1)/2;
-            if length(stateId) > 1
-                idx = floor(stateId) == stateId;
-                stateId = stateId(idx);
-            end
+                stateId = (strfind(matS,npTranslated) + 1)/2;
+                if length(stateId) > 1
+                    idx = floor(stateId) == stateId;
+                    stateId = stateId(idx);
+                end
+                stateId = floor(stateId);
             end
         end
         
@@ -155,7 +177,7 @@ classdef RlcaAgent
             rotationMatrix = [cos(deltaH), -sin(deltaH); sin(deltaH), cos(deltaH)];
             
             npTranslated = (rotationMatrix*deltaPNeighbour')';
-
+            
         end
         
         function [actionId, heading, Velocity] = calcgoalaction(obj)
@@ -163,7 +185,16 @@ classdef RlcaAgent
             headingVector = deltaP/norm(deltaP);
             heading = atan2(deltaP(2),deltaP(1));
             Velocity = round(2*headingVector*AgentConstants.MAX_SPEED)/2;
-            actionId = obj.getactionid(Velocity);           
+            if Velocity(1) == -4.5
+                1;
+            end
+            if norm(Velocity) > AgentConstants.MAX_SPEED
+                signs = Velocity./abs(Velocity);
+                Velocity = abs(Velocity);
+                Velocity = floor(Velocity);
+                Velocity = Velocity.*signs;
+            end
+            actionId = obj.getactionid(Velocity);
         end
         
         function actionId = getactionid(~,Velocity)

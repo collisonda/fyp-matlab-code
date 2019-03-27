@@ -89,17 +89,39 @@ classdef RlcaEnvironment < handle
         
         function [obj] = assessq(obj)
             global Q
+            global A
+            global S
+            reward = ones(1,2);
             if obj.collision
-                agent1reward = -1;
-                agent2reward = -1;
-            else                
-%                 agent1reward =
-%                 agent2reward =
+                reward(1) = -100;
+                reward(2) = -100;
+            else
+                %                 agent1reward =
+                %                 agent2reward =
             end
             
+            matA = [A{:}];
             
+            for iAgent = 1:obj.nAgents
+                Agent = obj.Agents{iAgent};
+                
+                for iAction = 1:length(Agent.PastActions)
+                    iState = iAction;
+                    actionId = Agent.PastActions(iAction);
+                    stateId = Agent.PastStates(iState);
+                    if stateId > 0
+                        sQ = Q(:,:,stateId);
+                        
+                        sQ(actionId) = (sQ(actionId) + (21-iAction)*reward(iAgent))/21;
+                        
+                        Q(:,:,stateId) = sQ;
+                    end
+                end
+                
+            end
             
         end
+        
         
     end
 end
