@@ -22,9 +22,9 @@ classdef RlcaAgent
         hasCollided = 0 % Boolean to show if the agent has been in a collision
         color % Colour of the agent on the plot
         stateId = -1;
-        PastStates = [-1 -1 1];
+        PastStates = -1*ones(1,10);
         actionId = -1;
-        PastActions = [-1 -1 -1];
+        PastActions = -1*ones(1,10);
     end
     
     %% RlcaAgent - Public Methods
@@ -44,14 +44,14 @@ classdef RlcaAgent
         
         function obj = timestep(obj)
             
-            obj.isAtGoal = obj.checkisAtGoal();
+            obj.isAtGoal = obj.checkisatgoal();
             
             if ~obj.isAtGoal                
                 [obj.stateId] = obj.getstate();
-                obj.PastStates = [obj.stateId, obj.PastStates(1), obj.PastStates(2)];
+                obj.PastStates = [obj.stateId, obj.PastStates(1:end-1)];
                 
                 [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
-                obj.PastActions = [obj.actionId, obj.PastActions(1), obj.PastActions(2)]; 
+                obj.PastActions = [obj.actionId, obj.PastActions(1:end-1)]; 
                 
                 obj.speed = norm(obj.Velocity);
                 
@@ -97,10 +97,28 @@ classdef RlcaAgent
     methods (Access = private)
         
         function [actionId, heading, Velocity] = calcaction(obj)
+            global Q
+            global A
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [actionId, heading, Velocity] = obj.calcgoalaction();
             else
-                % Choose an action and evaluate
+                % Choose an action
+                sQ = Q(:,:,obj.stateId);
+                M = max(max(sQ));
+                [r,c] = find(sQ==M);
+                if length(r) > 1 % Multiple max Qs, randomly select one
+                    selection = round(rand*length(r));
+                    if selection == 0
+                        selection = 1;
+                    end
+                    r = r(selection);
+                    c = c(selection);
+                end
+                Velocity = A{r,c};
+                actionId = obj.getactionid(Velocity);
+                heading = atan2(Velocity(2),Velocity(1));
+                
+                % Find best action based on Q values of state
             end
         end
         
@@ -108,28 +126,27 @@ classdef RlcaAgent
             global S
             if isempty(obj.neighbourIds)
                 stateId = 0;                
-            else
-                stateId = 0; %debugging, remove
-                
+            else                
                 p = obj.position;
                 np = obj.Neighbours.position;
                 h = obj.heading;
                 deltaP = obj.goal - obj.position;
                 gh = atan2(deltaP(2),deltaP(1));
                 
-                npTranslated = obj.translateneighbourposition(p,np,h,gh);
+                npTranslated = obj.translateneighbourposition(p,np,gh);
                 
                 npTranslated = 10*round(npTranslated/10);
                 
                 matS = [S{:}];
-                stateId = strfind(matS,npTranslated);
-                if length(stateId) > 1
-                    stateId = stateId(2);
-                end
+            stateId = (strfind(matS,npTranslated) + 1)/2;
+            if length(stateId) > 1
+                idx = floor(stateId) == stateId;
+                stateId = stateId(idx);
+            end
             end
         end
         
-        function npTranslated = translateneighbourposition(obj,p,np,h,gh)
+        function npTranslated = translateneighbourposition(obj,p,np,gh)
             % TODO: Translate the position of the neighbour to be relative
             % to the agent's position and in the direction of its goal.
             deltaPNeighbour = (np - p);
@@ -154,7 +171,8 @@ classdef RlcaAgent
             matA = [A{:}];
             actionId = (strfind(matA,Velocity) + 1)/2;
             if length(actionId) > 1
-                actionId = actionId(2);
+                idx = floor(actionId) == actionId;
+                actionId = actionId(idx);
             end
         end
         
@@ -182,7 +200,7 @@ classdef RlcaAgent
             
         end
         
-        function isAtGoal = checkisAtGoal(obj)
+        function isAtGoal = checkisatgoal(obj)
             deltaP = obj.goal - obj.position;
             
             deltaX = abs(deltaP(1));

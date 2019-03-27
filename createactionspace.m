@@ -8,7 +8,7 @@ for iX = 1:length(X)
         x = X(iX);
         y = X(iY);
         if norm([x,y]) <= AgentConstants.MAX_SPEED
-           A{iX,iY} = [x,y];
+           A{iY,iX} = [x,-y];
         end
     end
 end

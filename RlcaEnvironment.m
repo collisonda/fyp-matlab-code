@@ -9,7 +9,7 @@ classdef RlcaEnvironment < handle
         time = 0
         Gui
         isAgentStatic
-        nCollisions
+        collision = 0
     end
     
     %% RlcaEnvironment - Public Methods
@@ -26,10 +26,11 @@ classdef RlcaEnvironment < handle
             createevent();
             createevent('Commencing run');
             t = EnvironmentConstants.START_TIME;
-            while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME
+            while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME && obj.collision == 0
                 obj.time = t;
                 obj = obj.updateagents();
-                [obj.isAgentStatic, obj.nCollisions] = obj.assessagents();
+                [obj.isAgentStatic, obj.collision] = obj.assessagents();
+                obj.assessq();
                 obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 t = t + EnvironmentConstants.TIME_STEP;
             end
@@ -63,20 +64,41 @@ classdef RlcaEnvironment < handle
                         obj.Agents{iAgent} = obj.Agents{iAgent}.addneighbour(obj.Agents{jAgent});
                     end
                 end
-
+                
                 obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();
             end
         end
         
-        function [isAgentStatic, nCollisions] = assessagents(obj)
-            nCollisions = 0;
+        function [isAgentStatic, collision] = assessagents(obj)
             isAgentStatic = zeros(obj.nAgents,1);
             for iAgent = 1:obj.nAgents
-                isAgentStatic(iAgent) = obj.Agents{iAgent}.isAtGoal || obj.Agents{iAgent}.hasCollided;
-                if obj.Agents{iAgent}.hasCollided
-                    nCollisions = nCollisions + 1;
-                end
+                isAgentStatic(iAgent) = obj.Agents{iAgent}.isAtGoal;
             end
+            agent1Pos = obj.Agents{1}.position;
+            agent2Pos = obj.Agents{2}.position;
+            r = AgentConstants.RADIUS;
+            
+            [x,~] = circcirc(agent1Pos(1),agent1Pos(2),r,agent2Pos(1),agent2Pos(2),r);
+            
+            if ~isnan(x) % If there is an intersection point, the agents have collided
+                collision = 1;
+            else
+                collision = 0;
+            end
+        end
+        
+        function [obj] = assessq(obj)
+            global Q
+            if obj.collision
+                agent1reward = -1;
+                agent2reward = -1;
+            else                
+%                 agent1reward =
+%                 agent2reward =
+            end
+            
+            
+            
         end
         
     end
