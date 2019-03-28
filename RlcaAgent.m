@@ -10,10 +10,10 @@ classdef RlcaAgent
         preferredVelocity = [0,0];
         speed = AgentConstants.MAX_SPEED
         radius = [] % Collision radius of the agent
-        prevHeading = []
         heading = [] % Agent direction in degrees
         headingVector = []
         goal = zeros(1,2) % Goal position of the agent
+        goalHeading = []
         prevDistanceToGoal = []
         distanceToGoal = [] % Current distance to agent goal
         neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS % Observable space around the agent
@@ -38,9 +38,12 @@ classdef RlcaAgent
             obj.color = obj.getcolor();
             obj.position = [x0, y0];
             obj.goal = [xg, yg];
+            
+            deltaP = obj.goal - obj.position;
+            obj.goalHeading = atan2(deltaP(2),deltaP(1));
+            
             [obj.heading, obj.headingVector] = obj.calcheading();
-            %             obj.Velocity = obj.calcvelocity();
-            %             obj.speed = norm(obj.Velocity);
+
             obj.distanceToGoal = obj.calcdistancetogoal();
         end
         
@@ -52,7 +55,6 @@ classdef RlcaAgent
                 [obj.stateId] = obj.getstate();
                 obj.PastStates = [obj.stateId, obj.PastStates];
                 
-                obj.prevHeading = obj.heading;
                 [obj.actionId, obj.heading, obj.Velocity, obj.epsilon] = obj.calcaction();
                 obj.PastActions = [obj.actionId, obj.PastActions];
                 
@@ -62,7 +64,7 @@ classdef RlcaAgent
                 obj.position = calcposition(obj,EnvironmentConstants.TIME_STEP);
                 
                 obj.prevDistanceToGoal = obj.distanceToGoal;
-                obj.distanceToGoal = obj.calcdistancetogoal();
+                [obj.distanceToGoal, obj.goalHeading] = obj.calcdistancetogoal();
             else
                 obj.speed = 0;
             end
@@ -108,7 +110,7 @@ classdef RlcaAgent
                 [Velocity] = obj.calcgoalvelocity();
             else
                 % Choose an action
-                if (rand > epsilon) % Choose best option
+                if (1 > epsilon) % Choose best option
                     sQ = Q(:,:,obj.stateId);
                     M = max(max(sQ));
                     [r,c] = find(sQ==M);
@@ -235,10 +237,12 @@ classdef RlcaAgent
             end
         end
         
-        function distanceToGoal = calcdistancetogoal(obj)
+        function [distanceToGoal, goalHeading] = calcdistancetogoal(obj)
             deltaX = abs(obj.position(1) - obj.goal(1));
             deltaY = abs(obj.position(2) - obj.goal(2));
             distanceToGoal = hypot(deltaX,deltaY);
+            deltaP = obj.goal - obj.position;
+            goalHeading = atan2(deltaP(2),deltaP(1));
         end
         
         function actualVelocity = calcvelocity(obj)

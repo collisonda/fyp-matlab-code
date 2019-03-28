@@ -7,7 +7,7 @@ classdef RLConstants < handle
         INITIAL_EPSILON = 0.7;
         EPSILON_DECAY_RATE = 0.98;
         GOAL_DISTANCE_WEIGHT = 60;
-        SIMILAR_HEADING_WEIGHT = 10;
+        SIMILAR_HEADING_WEIGHT = 30;
         GOAL_REWARD = 100;
         COLLISION_PENALTY = -200;
         BASE_FACTOR = 0.05;

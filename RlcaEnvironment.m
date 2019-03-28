@@ -42,10 +42,13 @@ classdef RlcaEnvironment < handle
                 obj.time = t;
                 obj = obj.updateagents();
                 [obj.isAgentStatic, obj.collision, obj.goalsReached] = obj.assessagents();
-                obj.assessq();
+                
                 if obj.guiOn
                     obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 end
+                
+                obj.assessq();
+                
                 t = t + EnvironmentConstants.TIME_STEP;
             end
             if obj.eventsOn
@@ -96,7 +99,7 @@ classdef RlcaEnvironment < handle
             end
             
             if nnz(isAgentStatic) == obj.nAgents
-               goalsReached = 1; 
+                goalsReached = 1;
             end
             
             agent1Pos = obj.Agents{1}.position;
@@ -113,38 +116,23 @@ classdef RlcaEnvironment < handle
         end
         
         function [obj] = assessq(obj)
-            global Q
-            global A
+            
             reward = zeros(1,2);
             if obj.collision
                 reward = [RLConstants.COLLISION_PENALTY, RLConstants.COLLISION_PENALTY];
+                retrocausality = 1;
             elseif obj.goalsReached
+                %TODO: Timing based reward
                 reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
+                retrocausality = 1;
             else
                 for iAgent = 1:obj.nAgents
                     reward(iAgent) = obj.calcreward(obj.Agents{iAgent});
+                    retrocausality = 0;
                 end
             end
             
-            matA = [A{:}];
-            
-            for iAgent = 1:obj.nAgents
-                Agent = obj.Agents{iAgent};
-                
-                for iAction = 1:length(Agent.PastActions)
-                    iState = iAction;
-                    actionId = Agent.PastActions(iAction);
-                    stateId = Agent.PastStates(iState);
-                    if stateId > 0
-                        sQ = Q(:,:,stateId);
-                        factor = (RLConstants.BASE_FACTOR + RLConstants.DISCOUNT_FACTOR^iAction);
-                        weightedReward = ((sQ(actionId) * (2 - factor)) + (factor * reward(iAgent)))/2;
-                        sQ(actionId) = weightedReward;
-                        Q(:,:,stateId) = sQ;
-                    end
-                end
-                
-            end
+            obj = obj.applyreward(reward,retrocausality);
             
         end
         
@@ -158,13 +146,50 @@ classdef RlcaEnvironment < handle
                 R = R + gdR;
             end
             
-            % Calculate similar heading reward
-            if ~isempty(Agent.prevHeading)
+            % Calculate close to goal heading reward
+            if ~isempty(Agent.goalHeading)
                 maxDeltaHeading = pi/2;
-                deltaHeading = abs(wrapToPi(Agent.prevHeading - Agent.heading));
+                deltaHeading = abs(wrapToPi(Agent.goalHeading - Agent.heading));
                 shR = (1 - (deltaHeading/maxDeltaHeading)) * RLConstants.SIMILAR_HEADING_WEIGHT;
                 R = R + shR;
             end
+            
+        end
+        
+        function obj = applyreward(obj,reward,retrocausality)
+            global Q           
+            
+            for iAgent = 1:obj.nAgents
+                Agent = obj.Agents{iAgent};
+                
+                if retrocausality               
+                    for iAction = 1:length(Agent.PastActions)
+                        iState = iAction;
+                        actionId = Agent.PastActions(iAction);
+                        stateId = Agent.PastStates(iState);
+                        if stateId > 0
+                            sQ = Q(:,:,stateId);
+                            factor = (RLConstants.BASE_FACTOR + RLConstants.DISCOUNT_FACTOR^iAction);
+                            weightedReward = ((sQ(actionId) * (2 - factor)) + (factor * reward(iAgent)))/2;
+                            sQ(actionId) = weightedReward;
+                            Q(:,:,stateId) = sQ;
+                        end
+                    end                    
+                else
+                    actionId = Agent.actionId;
+                    stateId = Agent.stateId;
+                    if stateId > 0
+                        sQ = Q(:,:,stateId);
+                        factor = RLConstants.DISCOUNT_FACTOR;
+                        weightedReward = ((sQ(actionId) * (2 - factor)) + (factor * reward(iAgent)))/2;
+                        sQ(actionId) = weightedReward;
+                        Q(:,:,stateId) = sQ;
+                    end
+                    
+                end
+                
+            end
+            
         end
         
         
