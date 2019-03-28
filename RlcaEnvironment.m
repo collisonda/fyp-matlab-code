@@ -10,45 +10,64 @@ classdef RlcaEnvironment < handle
         Gui
         isAgentStatic
         collision = 0
+        goalsReached = 0
+        guiOn
+        eventsOn
     end
     
     %% RlcaEnvironment - Public Methods
     methods (Access = public)
         
-        function obj = RlcaEnvironment()
-            createevent('Initialising');
-            obj.Gui = RlcaGui();
+        function obj = RlcaEnvironment(guiOn,eventsOn)
+            
+            obj.guiOn = guiOn;
+            obj.eventsOn = eventsOn;
+            if obj.guiOn
+                obj.Gui = RlcaGui();
+            end
+            if obj.eventsOn
+                createevent('Initialising');
+            end
         end
         
         function obj = runsimulation(obj)
             pause(0.5)
             tic
-            createevent();
-            createevent('Commencing run');
+            if obj.eventsOn
+                createevent();
+                createevent('Commencing run');
+            end
             t = EnvironmentConstants.START_TIME;
             while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME && obj.collision == 0
                 obj.time = t;
                 obj = obj.updateagents();
-                [obj.isAgentStatic, obj.collision] = obj.assessagents();
+                [obj.isAgentStatic, obj.collision, obj.goalsReached] = obj.assessagents();
                 obj.assessq();
-                obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
+                if obj.guiOn
+                    obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
+                end
                 t = t + EnvironmentConstants.TIME_STEP;
             end
-            createevent('Run complete');
-            createevent();
+            if obj.eventsOn
+                createevent('Run complete');
+                createevent();
+            end
             tElapsed = toc;
             tElapsedSim = t;
-            createevent(['Real Time Elapsed        ' num2str(tElapsed) ' s']);
-            createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
-            createevent(['Real:Simulation Ratio    ' num2str(tElapsedSim/tElapsed)]);
+            if obj.eventsOn
+                createevent(['Real Time Elapsed        ' num2str(tElapsed) ' s']);
+                createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
+                createevent(['Real:Simulation Ratio    ' num2str(tElapsedSim/tElapsed)]);
+            end
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
             iAgent = obj.nAgents + 1;
             obj.Agents{iAgent} = RlcaAgent(x0,y0,xg,yg,iAgent);
             obj.nAgents = iAgent;
-            
-            obj.Gui = obj.Gui.generateagentgraphic(obj.Agents{iAgent});
+            if obj.guiOn
+                obj.Gui = obj.Gui.generateagentgraphic(obj.Agents{iAgent});
+            end
         end
         
     end
@@ -69,11 +88,17 @@ classdef RlcaEnvironment < handle
             end
         end
         
-        function [isAgentStatic, collision] = assessagents(obj)
+        function [isAgentStatic, collision, goalsReached] = assessagents(obj)
+            goalsReached = 0;
             isAgentStatic = zeros(obj.nAgents,1);
             for iAgent = 1:obj.nAgents
                 isAgentStatic(iAgent) = obj.Agents{iAgent}.isAtGoal;
             end
+            
+            if nnz(isAgentStatic) == obj.nAgents
+               goalsReached = 1; 
+            end
+            
             agent1Pos = obj.Agents{1}.position;
             agent2Pos = obj.Agents{2}.position;
             r = AgentConstants.RADIUS;
@@ -90,14 +115,15 @@ classdef RlcaEnvironment < handle
         function [obj] = assessq(obj)
             global Q
             global A
-            global S
-            reward = ones(1,2);
+            reward = zeros(1,2);
             if obj.collision
-                reward(1) = -100;
-                reward(2) = -100;
+                reward = [RLConstants.COLLISION_PENALTY, RLConstants.COLLISION_PENALTY];
+            elseif obj.goalsReached
+                reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
             else
-                %                 agent1reward =
-                %                 agent2reward =
+                for iAgent = 1:obj.nAgents
+                    reward(iAgent) = obj.calcreward(obj.Agents{iAgent});
+                end
             end
             
             matA = [A{:}];
@@ -111,15 +137,34 @@ classdef RlcaEnvironment < handle
                     stateId = Agent.PastStates(iState);
                     if stateId > 0
                         sQ = Q(:,:,stateId);
-                        
-                        sQ(actionId) = (sQ(actionId) + (21-iAction)*reward(iAgent))/21;
-                        
+                        factor = (RLConstants.BASE_FACTOR + RLConstants.DISCOUNT_FACTOR^iAction);
+                        weightedReward = ((sQ(actionId) * (2 - factor)) + (factor * reward(iAgent)))/2;
+                        sQ(actionId) = weightedReward;
                         Q(:,:,stateId) = sQ;
                     end
                 end
                 
             end
             
+        end
+        
+        function R = calcreward(~,Agent)
+            R = 0;
+            % Calculate goal distance reward
+            if ~isempty(Agent.prevDistanceToGoal)
+                maxDeltaGoalDistance = AgentConstants.MAX_SPEED*EnvironmentConstants.TIME_STEP;
+                deltaGoalDistance = Agent.prevDistanceToGoal - Agent.distanceToGoal;
+                gdR = RLConstants.GOAL_DISTANCE_WEIGHT*(deltaGoalDistance/maxDeltaGoalDistance);
+                R = R + gdR;
+            end
+            
+            % Calculate similar heading reward
+            if ~isempty(Agent.prevHeading)
+                maxDeltaHeading = pi/2;
+                deltaHeading = abs(wrapToPi(Agent.prevHeading - Agent.heading));
+                shR = (1 - (deltaHeading/maxDeltaHeading)) * RLConstants.SIMILAR_HEADING_WEIGHT;
+                R = R + shR;
+            end
         end
         
         

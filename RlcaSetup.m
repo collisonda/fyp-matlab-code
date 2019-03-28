@@ -1,6 +1,6 @@
 %% Housekeeping
-clc     % Clear command line
-clear   % Clear workspace
+% clc     % Clear command line
+% clear   % Clear workspace
 close   % Close any figures
 
 %% Add folders to path
@@ -13,7 +13,9 @@ set(0, 'DefaultFigureRenderer', 'opengl');
 opengl hardware
 
 %% Initialise Environment
-Environment = RlcaEnvironment();
+guiOn = 1;
+eventsOn = 0;
+Environment = RlcaEnvironment(guiOn,eventsOn);
 
 %% Initialise S, A, Q
 global S
@@ -46,8 +48,8 @@ cd Scenarios
 d = dir('*.m');
 cd(oldCd);
 fn = {d.name};
-iScenario = listdlg('ListString',fn,'PromptString','Select a scenario:','SelectionMode','single');
-
+% iScenario = listdlg('ListString',fn,'PromptString','Select a scenario:','SelectionMode','single');
+iScenario = 1;
 % Run the selected scenario.
 switch (iScenario)
     case 1
