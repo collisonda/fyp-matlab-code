@@ -13,13 +13,14 @@ classdef RlcaEnvironment < handle
         goalsReached = 0
         guiOn
         eventsOn
+        tOptimal
     end
     
     %% RlcaEnvironment - Public Methods
     methods (Access = public)
         
-        function obj = RlcaEnvironment(guiOn,eventsOn)
-            
+        function obj = RlcaEnvironment(guiOn,eventsOn,tOptimal)
+            obj.tOptimal = tOptimal;
             obj.guiOn = guiOn;
             obj.eventsOn = eventsOn;
             if obj.guiOn
@@ -124,6 +125,11 @@ classdef RlcaEnvironment < handle
             elseif obj.goalsReached
                 %TODO: Timing based reward
                 reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
+                
+                % timing consideration
+                efficiency = obj.tOptimal/obj.time;
+                reward = reward*efficiency;
+                
                 retrocausality = 1;
             else
                 for iAgent = 1:obj.nAgents
@@ -154,6 +160,8 @@ classdef RlcaEnvironment < handle
                 R = R + shR;
             end
             
+            %TODO: Penalty if action puts agent too close to neighbour
+            
         end
         
         function obj = applyreward(obj,reward,retrocausality)
@@ -163,10 +171,15 @@ classdef RlcaEnvironment < handle
                 Agent = obj.Agents{iAgent};
                 
                 if retrocausality               
-                    for iAction = 1:length(Agent.PastActions)
+                    nonGoalIdx = Agent.PastStates ~= 0;
+                    nonGoalStates = Agent.PastStates(nonGoalIdx);
+                    nonGoalActions = Agent.PastActions(nonGoalIdx);
+                    % ERROR: FOR SOME REASON THE ACTION IT CHOOSES JUST
+                    % BEFORE COLLIDING HAS A LOW Q VALUE
+                    for iAction = 1:length(nonGoalActions)
                         iState = iAction;
-                        actionId = Agent.PastActions(iAction);
-                        stateId = Agent.PastStates(iState);
+                        actionId = nonGoalActions(iAction);
+                        stateId = nonGoalStates(iState);
                         if stateId > 0
                             sQ = Q(:,:,stateId);
                             factor = (RLConstants.BASE_FACTOR + RLConstants.DISCOUNT_FACTOR^iAction);

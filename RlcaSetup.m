@@ -14,8 +14,9 @@ opengl hardware
 
 %% Initialise Environment
 guiOn = 1;
-eventsOn = 0;
-Environment = RlcaEnvironment(guiOn,eventsOn);
+eventsOn = 1;
+tOptimal = 25;
+Environment = RlcaEnvironment(guiOn,eventsOn,tOptimal);
 
 %% Initialise S, A, Q
 global S

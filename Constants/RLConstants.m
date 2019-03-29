@@ -3,14 +3,14 @@ classdef RLConstants < handle
     %   Detailed explanation goes here
     
     properties (Constant)
-        DISCOUNT_FACTOR = 0.5;
-        INITIAL_EPSILON = 0.7;
+        DISCOUNT_FACTOR = 0.9;
+        INITIAL_EPSILON = 0.5;
         EPSILON_DECAY_RATE = 0.98;
-        GOAL_DISTANCE_WEIGHT = 60;
-        SIMILAR_HEADING_WEIGHT = 30;
-        GOAL_REWARD = 100;
-        COLLISION_PENALTY = -200;
-        BASE_FACTOR = 0.05;
+        GOAL_DISTANCE_WEIGHT = 5;
+        SIMILAR_HEADING_WEIGHT = 2;
+        GOAL_REWARD = 400;
+        COLLISION_PENALTY = -100;
+        BASE_FACTOR = 0.02;
     end
 
 end

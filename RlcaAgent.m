@@ -43,7 +43,7 @@ classdef RlcaAgent
             obj.goalHeading = atan2(deltaP(2),deltaP(1));
             
             [obj.heading, obj.headingVector] = obj.calcheading();
-
+            
             obj.distanceToGoal = obj.calcdistancetogoal();
         end
         
@@ -108,6 +108,8 @@ classdef RlcaAgent
             epsilon = obj.epsilon;
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [Velocity] = obj.calcgoalvelocity();
+                actionId = obj.getactionid(Velocity);
+                heading = atan2(Velocity(2),Velocity(1));
             else
                 % Choose an action
                 if (1 > epsilon) % Choose best option
@@ -133,22 +135,24 @@ classdef RlcaAgent
                         c = round(1 + rand*(size(A,2)-1));
                         %TODO: A needs to be relative to goal heading
                         Velocity = A{r,c};
-                        threshold = 5 + rand*8;
+                        threshold = 5 + rand*7;
                         vDiff = norm(obj.Velocity - Velocity);
                         if vDiff > threshold
                             Velocity = [NaN, NaN];
                         end
                     end
                 end
+                deltaP = obj.goal - obj.position;
+                gh = atan2(deltaP(2),deltaP(1));
+                translatedVelocity = obj.translatevelocity(Velocity,gh);
+                actionId = obj.getactionid(Velocity);
+                heading = atan2(translatedVelocity(2),translatedVelocity(1));
                 
                 
                 %                 epsilon = obj.epsilon * RLConstants.EPSILON_DECAY_RATE;
             end
-            deltaP = obj.goal - obj.position;
-            gh = atan2(deltaP(2),deltaP(1));
-            translatedVelocity = obj.translatevelocity(Velocity,gh);
-            actionId = obj.getactionid(translatedVelocity);
-            heading = atan2(Velocity(2),Velocity(1));
+            
+            
         end
         
         function [stateId] = getstate(obj)
@@ -185,7 +189,7 @@ classdef RlcaAgent
         end
         
         function velocityTranslated = translatevelocity(~,Velocity,gh)
-            deltaH = -gh+pi/2;
+            deltaH = gh-pi/2;
             
             rotationMatrix = [cos(deltaH), -sin(deltaH); sin(deltaH), cos(deltaH)];
             
