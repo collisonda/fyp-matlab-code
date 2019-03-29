@@ -1,6 +1,6 @@
 %% Housekeeping
-% clc     % Clear command line
-% clear   % Clear workspace
+clc     % Clear command line
+clear tOptimal ans   % Clear workspace
 close   % Close any figures
 
 %% Add folders to path
@@ -13,8 +13,8 @@ set(0, 'DefaultFigureRenderer', 'opengl');
 opengl hardware
 
 %% Initialise Environment
-guiOn = 1;
-eventsOn = 1;
+guiOn = 0;
+eventsOn = 0;
 tOptimal = 25;
 Environment = RlcaEnvironment(guiOn,eventsOn,tOptimal);
 

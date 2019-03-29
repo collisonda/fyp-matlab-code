@@ -6,11 +6,12 @@ classdef RLConstants < handle
         DISCOUNT_FACTOR = 0.9;
         INITIAL_EPSILON = 0.5;
         EPSILON_DECAY_RATE = 0.98;
-        GOAL_DISTANCE_WEIGHT = 5;
-        SIMILAR_HEADING_WEIGHT = 2;
+        GOAL_DISTANCE_WEIGHT = 20;
+        SIMILAR_HEADING_WEIGHT = 8;
         GOAL_REWARD = 400;
-        COLLISION_PENALTY = -100;
+        COLLISION_PENALTY = -200;
         BASE_FACTOR = 0.02;
+        PROXIMITY_PENTALTY = 20;
     end
 
 end

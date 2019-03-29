@@ -34,11 +34,14 @@ classdef RlcaEnvironment < handle
         function obj = runsimulation(obj)
             pause(0.5)
             tic
+            
             if obj.eventsOn
                 createevent();
                 createevent('Commencing run');
             end
+            
             t = EnvironmentConstants.START_TIME;
+            
             while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME && obj.collision == 0
                 obj.time = t;
                 obj = obj.updateagents();
@@ -51,6 +54,9 @@ classdef RlcaEnvironment < handle
                 obj.assessq();
                 
                 t = t + EnvironmentConstants.TIME_STEP;
+                if t > 20
+                    1;
+                end
             end
             if obj.eventsOn
                 createevent('Run complete');
@@ -105,7 +111,7 @@ classdef RlcaEnvironment < handle
             
             agent1Pos = obj.Agents{1}.position;
             agent2Pos = obj.Agents{2}.position;
-            r = AgentConstants.RADIUS;
+            r = 1.06*AgentConstants.RADIUS;
             
             [x,~] = circcirc(agent1Pos(1),agent1Pos(2),r,agent2Pos(1),agent2Pos(2),r);
             
@@ -156,6 +162,9 @@ classdef RlcaEnvironment < handle
             if ~isempty(Agent.goalHeading)
                 maxDeltaHeading = pi/2;
                 deltaHeading = abs(wrapToPi(Agent.goalHeading - Agent.heading));
+                if deltaHeading < pi/4
+                    deltaHeading = 0;
+                end
                 shR = (1 - (deltaHeading/maxDeltaHeading)) * RLConstants.SIMILAR_HEADING_WEIGHT;
                 R = R + shR;
             end
@@ -171,6 +180,7 @@ classdef RlcaEnvironment < handle
                 Agent = obj.Agents{iAgent};
                 
                 if retrocausality               
+                    
                     nonGoalIdx = Agent.PastStates ~= 0;
                     nonGoalStates = Agent.PastStates(nonGoalIdx);
                     nonGoalActions = Agent.PastActions(nonGoalIdx);
@@ -180,6 +190,7 @@ classdef RlcaEnvironment < handle
                         iState = iAction;
                         actionId = nonGoalActions(iAction);
                         stateId = nonGoalStates(iState);
+                        
                         if stateId > 0
                             sQ = Q(:,:,stateId);
                             factor = (RLConstants.BASE_FACTOR + RLConstants.DISCOUNT_FACTOR^iAction);

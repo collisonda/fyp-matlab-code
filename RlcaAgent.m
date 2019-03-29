@@ -19,6 +19,7 @@ classdef RlcaAgent
         neighbourhoodRadius = AgentConstants.NEIGHBOURHOOD_RADIUS % Observable space around the agent
         Neighbours = struct('position',[],'velocity',[],'radius',[]) % Information on agents currently within its neighbourhood
         neighbourIds = []
+        distToNeighbour = []
         isAtGoal = 0 % Boolean to show if the agent has reached its intended goal
         hasCollided = 0 % Boolean to show if the agent has been in a collision
         color % Colour of the agent on the plot
@@ -26,7 +27,7 @@ classdef RlcaAgent
         PastStates = []
         actionId = -1;
         PastActions = []
-        epsilon = RLConstants.INITIAL_EPSILON
+%         epsilon = RLConstants.INITIAL_EPSILON
     end
     
     %% RlcaAgent - Public Methods
@@ -54,8 +55,9 @@ classdef RlcaAgent
             if ~obj.isAtGoal
                 [obj.stateId] = obj.getstate();
                 obj.PastStates = [obj.stateId, obj.PastStates];
-                
-                [obj.actionId, obj.heading, obj.Velocity, obj.epsilon] = obj.calcaction();
+
+
+                [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
                 obj.PastActions = [obj.actionId, obj.PastActions];
                 
                 
@@ -66,6 +68,10 @@ classdef RlcaAgent
                 obj.prevDistanceToGoal = obj.distanceToGoal;
                 [obj.distanceToGoal, obj.goalHeading] = obj.calcdistancetogoal();
             else
+                obj.stateId = 0;
+                obj.PastStates = [obj.stateId, obj.PastStates];
+                obj.actionId = -1;
+                obj.PastActions = [obj.actionId, obj.PastActions];
                 obj.speed = 0;
             end
             
@@ -102,17 +108,18 @@ classdef RlcaAgent
     %% RlcaAgent - Private Methods
     methods (Access = private)
         
-        function [actionId, heading, Velocity, epsilon] = calcaction(obj)
+        function [actionId, heading, Velocity] = calcaction(obj)
             global Q
             global A
-            epsilon = obj.epsilon;
+            global epsilon
+%             epsilon = obj.epsilon;
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [Velocity] = obj.calcgoalvelocity();
                 actionId = obj.getactionid(Velocity);
                 heading = atan2(Velocity(2),Velocity(1));
             else
                 % Choose an action
-                if (1 > epsilon) % Choose best option
+                if (rand > epsilon) % Choose best option
                     sQ = Q(:,:,obj.stateId);
                     M = max(max(sQ));
                     [r,c] = find(sQ==M);
