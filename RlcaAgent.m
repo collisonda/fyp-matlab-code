@@ -143,7 +143,6 @@ classdef RlcaAgent
                         r = r(iR);
                         c = c(iC);
                     end
-                    %TODO: A needs to be relative to goal heading
                     Velocity = A{r,c};
                 else
                     % Choose random action
@@ -151,13 +150,12 @@ classdef RlcaAgent
                     while isnan(Velocity)
                         r = round(1 + rand*(size(A,1)-1));
                         c = round(1 + rand*(size(A,2)-1));
-                        %TODO: A needs to be relative to goal heading
                         Velocity = A{r,c};
-                        threshold = 5 + rand*7;
-                        vDiff = norm(obj.Velocity - Velocity);
-                        if vDiff > threshold
-                            Velocity = [NaN, NaN];
-                        end
+%                         threshold = 5 + rand*7;
+%                         vDiff = norm(obj.Velocity - Velocity);
+%                         if vDiff > threshold
+%                             Velocity = [NaN, NaN];
+%                         end
                     end
                 end
                 deltaP = obj.goal - obj.position;
@@ -166,9 +164,6 @@ classdef RlcaAgent
                 actionId = obj.getactionid(Velocity);
                 Velocity = translatedVelocity;
                 heading = atan2(Velocity(2),Velocity(1));
-                
-                
-                %                 epsilon = obj.epsilon * RLConstants.EPSILON_DECAY_RATE;
             end
             
             

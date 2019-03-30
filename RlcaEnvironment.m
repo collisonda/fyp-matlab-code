@@ -174,14 +174,15 @@ classdef RlcaEnvironment < handle
         end
         
         function obj = applyreward(obj,reward,retrocausality)
-            global Q           
+            global Q
+            global visitCount
             
             % Needs to take an average of all the rewards for that action
             % in that state
             for iAgent = 1:obj.nAgents
                 Agent = obj.Agents{iAgent};
                 
-                if retrocausality               
+                if retrocausality
                     
                     nonGoalIdx = Agent.PastStates ~= 0;
                     nonGoalStates = Agent.PastStates(nonGoalIdx);
@@ -197,19 +198,27 @@ classdef RlcaEnvironment < handle
                         
                         if stateId > 0
                             sQ = Q(:,:,stateId);
-                            factor = (RLConstants.BASE_FACTOR + RLConstants.DISCOUNT_FACTOR^iAction);
-                            weightedReward = ((sQ(actionId) * (2 - factor)) + (factor * reward(iAgent)))/2;
+                            sV = visitCount(:,:,stateId);
+                            nVisits = sV(actionId);
+
+                            nVisits = nVisits/(RLConstants.DISCOUNT_FACTOR^iAction);
+                            weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
+                            sV(actionId) = sV(actionId) + 1;
+                            visitCount(:,:,stateId) = sV;
                             sQ(actionId) = round(2*weightedReward)/2;
                             Q(:,:,stateId) = sQ;
                         end
-                    end                    
+                    end
                 else
                     actionId = Agent.actionId;
                     stateId = Agent.stateId;
                     if stateId > 0
                         sQ = Q(:,:,stateId);
-                        factor = RLConstants.DISCOUNT_FACTOR;
-                        weightedReward = ((sQ(actionId) * (2 - factor)) + (factor * reward(iAgent)))/2;
+                        sV = visitCount(:,:,stateId);                        
+                        nVisits = sV(actionId);
+                        weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
+                        sV(actionId) = sV(actionId) + 1;
+                        visitCount(:,:,stateId) = sV;
                         sQ(actionId) = round(2*weightedReward)/2;
                         Q(:,:,stateId) = sQ;
                     end

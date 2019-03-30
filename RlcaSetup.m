@@ -23,8 +23,12 @@ global S
 global A
 S = createstatespace;
 A = createactionspace;
+
 load('Q.mat');
+load('visitCount.mat');
 global Q
+global visitCount
+
 % TODO: Setup Q so that for each state, every action has a Q value
 % associated with it.
 % A state is the neighbour's position relative to the position of the
@@ -73,3 +77,4 @@ Environment = Environment.runsimulation();
 
 %% Save new Q
 save('Q.mat','Q');
+save('visitCount.mat','visitCount');
