@@ -49,6 +49,7 @@ classdef RlcaAgent
         end
         
         function obj = timestep(obj)
+            movementSmoothing = 1;
             
             obj.isAtGoal = obj.checkisatgoal();
             
@@ -56,10 +57,15 @@ classdef RlcaAgent
                 [obj.stateId] = obj.getstate();
                 obj.PastStates = [obj.stateId, obj.PastStates];
                 
-                
+                prevVelocity = obj.Velocity;
                 [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
+                if movementSmoothing
+                    obj.Velocity = round(2*(obj.Velocity + prevVelocity)/2)/2;
+                end
                 obj.PastActions = [obj.actionId, obj.PastActions];
-                
+                if length(obj.PastStates) ~= length(obj.PastActions)
+                    1;
+                end
                 
                 obj.speed = norm(obj.Velocity);
                 
@@ -70,9 +76,12 @@ classdef RlcaAgent
             else
                 obj.stateId = 0;
                 obj.PastStates = [obj.stateId, obj.PastStates];
-                obj.actionId = -1;
+                obj.actionId = 0;
                 obj.PastActions = [obj.actionId, obj.PastActions];
                 obj.speed = 0;
+                if length(obj.PastStates) ~= length(obj.PastActions)
+                    1;
+                end
             end
             
         end
@@ -119,7 +128,7 @@ classdef RlcaAgent
                 heading = atan2(Velocity(2),Velocity(1));
             else
                 % Choose an action
-                if (rand > epsilon) % Choose best option
+                if (1 > epsilon) % Choose best option
                     sQ = Q(:,:,obj.stateId);
                     M = max(max(sQ));
                     [r,c] = find(sQ==M);
@@ -151,11 +160,11 @@ classdef RlcaAgent
                         r = round(1 + rand*(size(A,1)-1));
                         c = round(1 + rand*(size(A,2)-1));
                         Velocity = A{r,c};
-%                         threshold = 5 + rand*7;
-%                         vDiff = norm(obj.Velocity - Velocity);
-%                         if vDiff > threshold
-%                             Velocity = [NaN, NaN];
-%                         end
+                        %                         threshold = 5 + rand*7;
+                        %                         vDiff = norm(obj.Velocity - Velocity);
+                        %                         if vDiff > threshold
+                        %                             Velocity = [NaN, NaN];
+                        %                         end
                     end
                 end
                 deltaP = obj.goal - obj.position;
@@ -234,12 +243,17 @@ classdef RlcaAgent
         function [Velocity] = calcgoalvelocity(obj)
             deltaP = obj.goal - obj.position;
             headingVector = deltaP/norm(deltaP);
-            Velocity = round(2*headingVector*AgentConstants.MAX_SPEED)/2;
-            
-            if norm(Velocity) > AgentConstants.MAX_SPEED
+            exactVelocity = headingVector*AgentConstants.MAX_SPEED;
+            Velocity = round(2*exactVelocity)/2;
+            if Velocity(1) == 6 && Velocity(2) == 1
+                1;
+            end
+
+            while norm(Velocity) > AgentConstants.MAX_SPEED
+                [~,i] = max(abs(Velocity - exactVelocity));
                 signs = Velocity./abs(Velocity);
                 Velocity = abs(Velocity);
-                Velocity = floor(Velocity);
+                Velocity(i) = Velocity(i) - 0.5;
                 Velocity = Velocity.*signs;
             end
             

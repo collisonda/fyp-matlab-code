@@ -1,5 +1,6 @@
+function [] = RlcaSetup(Scenario,guiOn)
 %% Housekeeping
-clc     % Clear command line
+% clc     % Clear command line
 clear tOptimal ans   % Clear workspace
 close   % Close any figures
 
@@ -13,9 +14,10 @@ set(0, 'DefaultFigureRenderer', 'opengl');
 opengl hardware
 
 %% Initialise Environment
-guiOn = 0;
+% guiOn = 1;
 eventsOn = 0;
-tOptimal = 25;
+tOptimal = 24;
+% tOptimal = 23.6;
 Environment = RlcaEnvironment(guiOn,eventsOn,tOptimal);
 
 %% Initialise S, A, Q
@@ -47,27 +49,31 @@ global visitCount
 %    their Q values reduced too, V2 more than V1 as it was closer in time
 %    to the collision.
 
-%% 
+%%
 oldCd = cd;
 cd Scenarios
 d = dir('*.m');
 cd(oldCd);
 fn = {d.name};
 % iScenario = listdlg('ListString',fn,'PromptString','Select a scenario:','SelectionMode','single');
-iScenario = 1;
+
 % Run the selected scenario.
-switch (iScenario)
-    case 1
-        crossing1;
-    case 2
-        crossing2;
-    case 3
-        headon;
-    case 4
-        random;
-    otherwise
-        error('Invalid Scenario')        
-end
+% switch (iScenario)
+%     case 1
+%         crossing1;
+%     case 2
+%         crossing2;
+%     case 3
+%         headon;
+%     case 4
+%         random;
+%     otherwise
+%         error('Invalid Scenario')
+% end
+agent1 = Scenario(1,:);
+agent2 = Scenario(2,:);
+Environment.createagent(agent1(1),agent1(2),-agent1(1),-agent1(2));
+Environment.createagent(agent2(1),agent2(2),-agent2(1),-agent2(2));
 
 %% Clear variables
 clear d fn oldCd iScenario
@@ -78,3 +84,4 @@ Environment = Environment.runsimulation();
 %% Save new Q
 save('Q.mat','Q');
 save('visitCount.mat','visitCount');
+end

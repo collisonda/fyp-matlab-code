@@ -127,11 +127,12 @@ classdef RlcaEnvironment < handle
             reward = zeros(1,2);
             if obj.collision
                 reward = [RLConstants.COLLISION_PENALTY, RLConstants.COLLISION_PENALTY];
+                disp('Collision')
                 retrocausality = 1;
             elseif obj.goalsReached
+                disp('Goal')
                 %TODO: Timing based reward
                 reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
-                
                 % timing consideration
                 efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal)^1.5;
                 reward = reward*efficiency;
@@ -162,7 +163,7 @@ classdef RlcaEnvironment < handle
             if ~isempty(Agent.goalHeading)
                 maxDeltaHeading = pi/2;
                 deltaHeading = abs(wrapToPi(Agent.goalHeading - Agent.heading));
-                if deltaHeading < pi/4
+                if deltaHeading < pi/3
                     deltaHeading = 0;
                 end
                 shR = (0.5 - (deltaHeading/maxDeltaHeading)) * RLConstants.SIMILAR_HEADING_WEIGHT;
@@ -205,7 +206,7 @@ classdef RlcaEnvironment < handle
                             weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
                             sV(actionId) = sV(actionId) + 1;
                             visitCount(:,:,stateId) = sV;
-                            sQ(actionId) = round(2*weightedReward)/2;
+                            sQ(actionId) = round(weightedReward,2);
                             Q(:,:,stateId) = sQ;
                         end
                     end
@@ -219,7 +220,7 @@ classdef RlcaEnvironment < handle
                         weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
                         sV(actionId) = sV(actionId) + 1;
                         visitCount(:,:,stateId) = sV;
-                        sQ(actionId) = round(2*weightedReward)/2;
+                        sQ(actionId) = round(weightedReward,2);
                         Q(:,:,stateId) = sQ;
                     end
                     
