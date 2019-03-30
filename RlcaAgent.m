@@ -27,7 +27,7 @@ classdef RlcaAgent
         PastStates = []
         actionId = -1;
         PastActions = []
-%         epsilon = RLConstants.INITIAL_EPSILON
+        %         epsilon = RLConstants.INITIAL_EPSILON
     end
     
     %% RlcaAgent - Public Methods
@@ -55,8 +55,8 @@ classdef RlcaAgent
             if ~obj.isAtGoal
                 [obj.stateId] = obj.getstate();
                 obj.PastStates = [obj.stateId, obj.PastStates];
-
-
+                
+                
                 [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
                 obj.PastActions = [obj.actionId, obj.PastActions];
                 
@@ -112,7 +112,7 @@ classdef RlcaAgent
             global Q
             global A
             global epsilon
-%             epsilon = obj.epsilon;
+            %             epsilon = obj.epsilon;
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [Velocity] = obj.calcgoalvelocity();
                 actionId = obj.getactionid(Velocity);
@@ -123,14 +123,25 @@ classdef RlcaAgent
                     sQ = Q(:,:,obj.stateId);
                     M = max(max(sQ));
                     [r,c] = find(sQ==M);
-                    if length(r) > 1 % Multiple max Qs, randomly select one
-                        %TODO: Select one closest to current velocity
-                        selection = round(rand*length(r));
-                        if selection == 0
-                            selection = 1;
+                    iR = 1;
+                    iC = 1;
+                    deltaP = obj.goal - obj.position;
+                    gh = atan2(deltaP(2),deltaP(1));
+                    translatedVelocity = obj.translatevelocity(A{r(1),c(1)},gh);
+                    currentDeltaV = norm(obj.Velocity-translatedVelocity);
+                    if length(r) > 1
+                        for i = 1:length(r)
+                            translatedVelocity = obj.translatevelocity(A{r(i),c(i)},gh);
+                            deltaV = norm(obj.Velocity-translatedVelocity);
+                            if deltaV < currentDeltaV
+                                iR = i;
+                                iC = i;
+                                currentDeltaV = deltaV;
+                            end
+                            
                         end
-                        r = r(selection);
-                        c = c(selection);
+                        r = r(iR);
+                        c = c(iC);
                     end
                     %TODO: A needs to be relative to goal heading
                     Velocity = A{r,c};
@@ -153,7 +164,8 @@ classdef RlcaAgent
                 gh = atan2(deltaP(2),deltaP(1));
                 translatedVelocity = obj.translatevelocity(Velocity,gh);
                 actionId = obj.getactionid(Velocity);
-                heading = atan2(translatedVelocity(2),translatedVelocity(1));
+                Velocity = translatedVelocity;
+                heading = atan2(Velocity(2),Velocity(1));
                 
                 
                 %                 epsilon = obj.epsilon * RLConstants.EPSILON_DECAY_RATE;

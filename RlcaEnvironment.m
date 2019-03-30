@@ -133,7 +133,7 @@ classdef RlcaEnvironment < handle
                 reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
                 
                 % timing consideration
-                efficiency = obj.tOptimal/obj.time;
+                efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal)^1.5;
                 reward = reward*efficiency;
                 
                 retrocausality = 1;
@@ -165,7 +165,7 @@ classdef RlcaEnvironment < handle
                 if deltaHeading < pi/4
                     deltaHeading = 0;
                 end
-                shR = (1 - (deltaHeading/maxDeltaHeading)) * RLConstants.SIMILAR_HEADING_WEIGHT;
+                shR = (0.5 - (deltaHeading/maxDeltaHeading)) * RLConstants.SIMILAR_HEADING_WEIGHT;
                 R = R + shR;
             end
             
@@ -176,6 +176,8 @@ classdef RlcaEnvironment < handle
         function obj = applyreward(obj,reward,retrocausality)
             global Q           
             
+            % Needs to take an average of all the rewards for that action
+            % in that state
             for iAgent = 1:obj.nAgents
                 Agent = obj.Agents{iAgent};
                 
@@ -186,6 +188,8 @@ classdef RlcaEnvironment < handle
                     nonGoalActions = Agent.PastActions(nonGoalIdx);
                     % ERROR: FOR SOME REASON THE ACTION IT CHOOSES JUST
                     % BEFORE COLLIDING HAS A LOW Q VALUE
+                    
+                    
                     for iAction = 1:length(nonGoalActions)
                         iState = iAction;
                         actionId = nonGoalActions(iAction);
@@ -195,7 +199,7 @@ classdef RlcaEnvironment < handle
                             sQ = Q(:,:,stateId);
                             factor = (RLConstants.BASE_FACTOR + RLConstants.DISCOUNT_FACTOR^iAction);
                             weightedReward = ((sQ(actionId) * (2 - factor)) + (factor * reward(iAgent)))/2;
-                            sQ(actionId) = weightedReward;
+                            sQ(actionId) = round(2*weightedReward)/2;
                             Q(:,:,stateId) = sQ;
                         end
                     end                    
@@ -206,7 +210,7 @@ classdef RlcaEnvironment < handle
                         sQ = Q(:,:,stateId);
                         factor = RLConstants.DISCOUNT_FACTOR;
                         weightedReward = ((sQ(actionId) * (2 - factor)) + (factor * reward(iAgent)))/2;
-                        sQ(actionId) = weightedReward;
+                        sQ(actionId) = round(2*weightedReward)/2;
                         Q(:,:,stateId) = sQ;
                     end
                     
