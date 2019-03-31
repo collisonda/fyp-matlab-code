@@ -1,18 +1,17 @@
 function [A] = createactionspace()
 %% Create action space
-X = -AgentConstants.MAX_SPEED:0.5:AgentConstants.MAX_SPEED;
-Y = -AgentConstants.MAX_SPEED:0.5:AgentConstants.MAX_SPEED;
-A = cell(length(X),length(Y));
-for iX = 1:length(X)
-    for iY = 1:length(Y)
-        x = X(iX);
-        y = X(iY);
-        if norm([x,y]) <= AgentConstants.MAX_SPEED
-           A{iY,iX} = [x,-y];
-        else
+[x,~] = pol2cart(linspace(0, 2*pi, 201), AgentConstants.MAX_SPEED);
+[~,y] = pol2cart(linspace(pi/2, 2*pi+pi/2, 201), AgentConstants.MAX_SPEED);
+x = round(-x(1:(length(x)+1)/2),3);
+y = round(y(1:(length(y)+1)/2),3);
+A = cell(length(y),length(x));
+for iY = 1:length(y)
+    for iX = 1:length(x)
+        if norm([x(iX),y(iY)]) > AgentConstants.MAX_SPEED
             A{iY,iX} = [NaN, NaN];
+        else
+            A{iY,iX} = [x(iX), y(iY)];
         end
     end
-end
 end
 

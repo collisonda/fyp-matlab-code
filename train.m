@@ -1,14 +1,17 @@
 %%
+
 global epsilon
 global Q
-epsilon = 0.5;
+load('Q.mat')
+
+epsilon = 0.05;
 tStart = datetime('now');
-nRuns = 7*20;
+nRuns = 7*1000;
 diff = zeros(1,nRuns);
 % h = waitbar(0,['Run 0 of ' num2str(nRuns)]);
 nScenarios = 7;
 Scenarios = generatescenarios(nScenarios);
-guiOn = 1;
+guiOn = 0;
 for i = 1:nRuns
     
     iScenario = mod(i-1,nScenarios) + 1;
@@ -20,7 +23,7 @@ for i = 1:nRuns
     prevQ = Q;
     RlcaSetup(Scenario,guiOn);
     if iScenario == nScenarios
-        epsilon = round(0.5*0.9998^i,5);
+%         epsilon = round(0.5*0.9998^i,5);
     end
     
     diff(i) = mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ)));

@@ -25,11 +25,11 @@ global S
 global A
 S = createstatespace;
 A = createactionspace;
-
-load('Q.mat');
-load('visitCount.mat');
 global Q
 global visitCount
+load('Q.mat');
+load('visitCount.mat');
+
 
 % TODO: Setup Q so that for each state, every action has a Q value
 % associated with it.

@@ -201,12 +201,16 @@ classdef RlcaEnvironment < handle
                             sQ = Q(:,:,stateId);
                             sV = visitCount(:,:,stateId);
                             nVisits = sV(actionId);
-
-                            nVisits = nVisits/(RLConstants.DISCOUNT_FACTOR^iAction);
+                            
+                            nVisits = nVisits/(RLConstants.DISCOUNT_FACTOR^(iAction-1));
                             weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
+
                             sV(actionId) = sV(actionId) + 1;
                             visitCount(:,:,stateId) = sV;
                             sQ(actionId) = round(weightedReward,2);
+                            if isnan(sQ(actionId))
+                                1;
+                            end
                             Q(:,:,stateId) = sQ;
                         end
                     end
