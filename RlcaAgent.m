@@ -57,11 +57,8 @@ classdef RlcaAgent
                 obj.PastStates = [obj.stateId, obj.PastStates];
                 
                 [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
-
+                
                 obj.PastActions = [obj.actionId, obj.PastActions];
-                if length(obj.PastStates) ~= length(obj.PastActions)
-                    1;
-                end
                 
                 obj.speed = norm(obj.Velocity);
                 
@@ -75,9 +72,6 @@ classdef RlcaAgent
                 obj.actionId = 0;
                 obj.PastActions = [obj.actionId, obj.PastActions];
                 obj.speed = 0;
-                if length(obj.PastStates) ~= length(obj.PastActions)
-                    1;
-                end
             end
             
         end
@@ -117,14 +111,18 @@ classdef RlcaAgent
             global Q
             global A
             global epsilon
+            global visitCount
             %             epsilon = obj.epsilon;
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [Velocity] = obj.calcgoalvelocity();
-%                 actionId = obj.getactionid(Velocity);
-%                 heading = atan2(Velocity(2),Velocity(1));
+                %                 actionId = obj.getactionid(Velocity);
+                %                 heading = atan2(Velocity(2),Velocity(1));
             else
                 % Choose an action
-                if (rand > epsilon) % Choose best option
+                sV = visitCount(:,:,obj.stateId);
+                [r,c] = find(sV==0);
+                nUnvisitedActions = nnz(r);
+                if (rand >= epsilon) || nUnvisitedActions == 0 % Choose best option
                     sQ = Q(:,:,obj.stateId);
                     M = max(max(sQ));
                     [r,c] = find(sQ==M);
@@ -149,29 +147,39 @@ classdef RlcaAgent
                         c = c(iC);
                     end
                     Velocity = A{r,c};
-                else
-                    %TODO Choose an action that hasnt been explored
-                    Velocity = [NaN, NaN];
-                    while isnan(Velocity)
-                        r = round(1 + rand*(size(A,1)-1));
-                        c = round(1 + rand*(size(A,2)-1));
-                        Velocity = A{r,c};
-                        %                         threshold = 5 + rand*7;
-                        %                         vDiff = norm(obj.Velocity - Velocity);
-                        %                         if vDiff > threshold
-                        %                             Velocity = [NaN, NaN];
-                        %                         end
+                else % Try an unexplored
+                    %                     sV = visitCount(:,:,obj.stateId);
+                    %                     [r,c] = find(sV==0);
+                    iR = 1;
+                    iC = 1;
+                    deltaP = obj.goal - obj.position;
+                    gh = atan2(deltaP(2),deltaP(1))-pi/2;
+                    translatedVelocity = obj.translatevelocity(A{r(1),c(1)},gh);
+                    currentDeltaV = norm(obj.Velocity-translatedVelocity);
+                    if length(r) > 1
+                        for i = 1:length(r)
+                            translatedVelocity = obj.translatevelocity(A{r(i),c(i)},gh);
+                            deltaV = norm(obj.Velocity-translatedVelocity);
+                            if deltaV < currentDeltaV
+                                iR = i;
+                                iC = i;
+                                currentDeltaV = deltaV;
+                            end
+                            
+                        end
+                        r = r(iR);
+                        c = c(iC);
                     end
+                    Velocity = A{r,c};
                 end
-
             end
-                deltaP = obj.goal - obj.position;
-                gh = atan2(deltaP(2),deltaP(1))-pi/2;
-                translatedVelocity = obj.translatevelocity(Velocity,gh);
-                translatedVelocity = obj.matchvelocity(translatedVelocity);
-                actionId = obj.getactionid(Velocity);
-                heading = atan2(translatedVelocity(2),translatedVelocity(1));
-                Velocity = translatedVelocity;
+            deltaP = obj.goal - obj.position;
+            gh = atan2(deltaP(2),deltaP(1))-pi/2;
+            translatedVelocity = obj.translatevelocity(Velocity,gh);
+            translatedVelocity = obj.matchvelocity(translatedVelocity);
+            actionId = obj.getactionid(Velocity);
+            heading = atan2(translatedVelocity(2),translatedVelocity(1));
+            Velocity = translatedVelocity;
             
         end
         
@@ -214,8 +222,8 @@ classdef RlcaAgent
             
             velocityTranslated = (rotationMatrix*Velocity')';
             
-%             velocityTranslated = obj.matchvelocity(velocityTranslated);
-
+            %             velocityTranslated = obj.matchvelocity(velocityTranslated);
+            
         end
         
         function npTranslated = translateneighbourposition(~,p,np,gh)
@@ -231,7 +239,7 @@ classdef RlcaAgent
         end
         
         function [Velocity] = calcgoalvelocity(obj)
-
+            
             deltaP = obj.goal - obj.position;
             headingVector = deltaP/norm(deltaP);
             Velocity = headingVector*AgentConstants.MAX_SPEED;
@@ -246,10 +254,10 @@ classdef RlcaAgent
         end
         
         function [Velocity] = matchvelocity(~,exactVelocity)
-            [v,~] = pol2cart(linspace(0, pi, 101), AgentConstants.MAX_SPEED);
+            [v,~] = pol2cart(linspace(0, pi, 51), AgentConstants.MAX_SPEED);
             v = round(v,3);
             Velocity = interp1(v,v,exactVelocity,'nearest');
-
+            
         end
         
         function actionId = getactionid(~,Velocity)

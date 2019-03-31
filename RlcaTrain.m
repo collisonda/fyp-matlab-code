@@ -2,16 +2,17 @@
 
 global epsilon
 global Q
+
 load('Q.mat')
 
-epsilon = 0.05;
+epsilon = 0.0;
 tStart = datetime('now');
-nRuns = 7*1000;
+nRuns = 20;
 diff = zeros(1,nRuns);
 % h = waitbar(0,['Run 0 of ' num2str(nRuns)]);
-nScenarios = 7;
+nScenarios = 7*100;
 Scenarios = generatescenarios(nScenarios);
-guiOn = 0;
+guiOn = 1;
 for i = 1:nRuns
     
     iScenario = mod(i-1,nScenarios) + 1;
@@ -27,6 +28,11 @@ for i = 1:nRuns
     end
     
     diff(i) = mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ)));
+
+    
+%     if i == round(nRuns/1.5)
+%        epsilon = 0.3; 
+%     end
     
 end
 tEnd = datetime('now');

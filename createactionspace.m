@@ -1,7 +1,7 @@
 function [A] = createactionspace()
 %% Create action space
-[x,~] = pol2cart(linspace(0, 2*pi, 201), AgentConstants.MAX_SPEED);
-[~,y] = pol2cart(linspace(pi/2, 2*pi+pi/2, 201), AgentConstants.MAX_SPEED);
+[x,~] = pol2cart(linspace(0, 2*pi, 101), AgentConstants.MAX_SPEED);
+[~,y] = pol2cart(linspace(pi/2, 2*pi+pi/2, 101), AgentConstants.MAX_SPEED);
 x = round(-x(1:(length(x)+1)/2),3);
 y = round(y(1:(length(y)+1)/2),3);
 A = cell(length(y),length(x));
