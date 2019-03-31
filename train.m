@@ -20,7 +20,7 @@ for i = 1:nRuns
     prevQ = Q;
     RlcaSetup(Scenario,guiOn);
     if iScenario == nScenarios
-        epsilon = round(0.5*0.997^i,5);
+        epsilon = round(0.5*0.9998^i,5);
     end
     
     diff(i) = mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ)));
@@ -31,8 +31,9 @@ tElapsed = duration(tEnd-tStart);
 tRun = tElapsed/nRuns;
 disp(tElapsed)
 disp(tRun)
+figure
 plot(1:nRuns,diff)
 grid on
 xlabel('iRun');
 ylabel('Mean Q Change');
-visualiseq;
+% visualiseq;

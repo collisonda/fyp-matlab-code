@@ -154,7 +154,7 @@ classdef RlcaAgent
                     end
                     Velocity = A{r,c};
                 else
-                    % Choose random action
+                    %TODO Choose an action that hasnt been explored
                     Velocity = [NaN, NaN];
                     while isnan(Velocity)
                         r = round(1 + rand*(size(A,1)-1));
