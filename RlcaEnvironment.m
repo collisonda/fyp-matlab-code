@@ -14,12 +14,20 @@ classdef RlcaEnvironment < handle
         guiOn
         eventsOn
         tOptimal
+        bestRun
+        stage
     end
     
     %% RlcaEnvironment - Public Methods
     methods (Access = public)
         
-        function obj = RlcaEnvironment(guiOn,Scenario)
+        function obj = RlcaEnvironment(guiOn,Scenario,stage,bestRun)
+            if nargin == 3
+                obj.bestRun = 0;
+            else
+                obj.bestRun = bestRun;
+            end
+            obj.stage = stage;
             obj.tOptimal = Scenario(3,1);
             obj.guiOn = guiOn;
             obj.eventsOn = 0;
@@ -45,9 +53,10 @@ classdef RlcaEnvironment < handle
                 createevent('Commencing run');
             end
             
-            t = EnvironmentConstants.START_TIME;
+            t = EnvironmentConstants.START_TIME - EnvironmentConstants.TIME_STEP;
             
             while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME && obj.collision == 0
+                t = t + EnvironmentConstants.TIME_STEP;
                 obj.time = t;
                 obj = obj.updateagents();
                 [obj.isAgentStatic, obj.collision, obj.goalsReached] = obj.assessagents();
@@ -56,12 +65,10 @@ classdef RlcaEnvironment < handle
                     obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 end
                 
-                obj.assessq();
-                
-                t = t + EnvironmentConstants.TIME_STEP;
-                if t > 20
-                    1;
+                if obj.stage ~= 0
+                    obj.assessq();
                 end
+                
             end
             if obj.eventsOn
                 createevent('Run complete');
@@ -75,7 +82,7 @@ classdef RlcaEnvironment < handle
                 createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
                 createevent(['Real:Simulation Ratio    ' num2str(tElapsedSim/tElapsed)]);
             end
-%             createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
+            %             createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
@@ -133,14 +140,32 @@ classdef RlcaEnvironment < handle
             
             reward = zeros(1,2);
             if obj.collision
-                reward = [RLConstants.COLLISION_PENALTY, RLConstants.COLLISION_PENALTY];
-                retrocausality = 1;
+                if obj.stage == 1
+                    reward = [RLConstants.COLLISION_PENALTY, RLConstants.COLLISION_PENALTY];
+                    retrocausality = 1;
+                else
+                    reward = [];
+                    retrocausality = 1;
+                end
             elseif obj.goalsReached
-                %TODO: Timing based reward
-                reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
-                % timing consideration
-                efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal)^1.5;
-                reward = reward*efficiency;
+                if obj.stage == 1
+                    reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
+                    % timing consideration
+                    efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal);
+                    reward = reward*efficiency;
+                else
+                    if obj.time < obj.bestRun
+                        %TODO: Timing based reward
+                        reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
+                        % timing consideration
+                        efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal)^0.8;
+                        reward = reward*efficiency;
+                    elseif obj.time == obj.bestRun
+                        reward = [];
+                    else
+                        reward = [0, 0];
+                    end
+                end
                 
                 retrocausality = 1;
             else
@@ -150,7 +175,9 @@ classdef RlcaEnvironment < handle
                 end
             end
             
-            obj = obj.applyreward(reward,retrocausality);
+            if ~isempty(reward)
+                obj = obj.applyreward(reward,retrocausality);
+            end
             
         end
         
@@ -196,7 +223,6 @@ classdef RlcaEnvironment < handle
                     % ERROR: FOR SOME REASON THE ACTION IT CHOOSES JUST
                     % BEFORE COLLIDING HAS A LOW Q VALUE
                     
-                    
                     for iAction = 1:length(nonGoalActions)
                         iState = iAction;
                         actionId = nonGoalActions(iAction);
@@ -209,7 +235,7 @@ classdef RlcaEnvironment < handle
                             
                             nVisits = nVisits/(RLConstants.DISCOUNT_FACTOR^(iAction-1));
                             weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
-
+                            
                             sV(actionId) = sV(actionId) + 1;
                             visitCount(:,:,stateId) = sV;
                             sQ(actionId) = round(weightedReward,2);
@@ -224,7 +250,7 @@ classdef RlcaEnvironment < handle
                     stateId = Agent.stateId;
                     if stateId > 0
                         sQ = Q(:,:,stateId);
-                        sV = visitCount(:,:,stateId);                        
+                        sV = visitCount(:,:,stateId);
                         nVisits = sV(actionId);
                         weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
                         sV(actionId) = sV(actionId) + 1;

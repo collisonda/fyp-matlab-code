@@ -9,7 +9,6 @@ visualiseQ = 0;
 %% Add folders to path
 addpath('Constants')
 addpath('Misc')
-addpath('Scenarios')
 
 %% Configure graphical settings
 set(0, 'DefaultFigureRenderer', 'opengl');
@@ -30,7 +29,7 @@ A = createactionspace();
 S = createstatespace();
 
 %%
-nRuns = 7*255;
+nRuns = 7;
 nScenarios = 7;
 Scenarios = generatescenarios(nScenarios);
 iScenario = 1;
@@ -46,10 +45,11 @@ diff = zeros(1,nRuns);
 for i = 1:nRuns
     iScenario = mod(i-1,nScenarios) + 1;
     Scenario = Scenarios{iScenario};
-    fprintf(['Test ' num2str(i) ' of ' num2str(nRuns) '\t Scenario: ' num2str(iScenario) '\t Result: '])
     
-    Environment = RlcaEnvironment(guiOn,Scenario);
+    
+    Environment = RlcaEnvironment(guiOn,Scenario,0);
     [goal, tElapsedSim] = Environment.runsimulation();
+    fprintf(['Test ' num2str(i) ' of ' num2str(nRuns) '\t Scenario: ' num2str(iScenario) '\t Result: '])
     if goal
         fprintf(['GOAL \t Time: ', num2str(tElapsedSim) 's \n'])
     else
