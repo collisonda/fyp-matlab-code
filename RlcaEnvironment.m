@@ -19,19 +19,24 @@ classdef RlcaEnvironment < handle
     %% RlcaEnvironment - Public Methods
     methods (Access = public)
         
-        function obj = RlcaEnvironment(guiOn,eventsOn,tOptimal)
-            obj.tOptimal = tOptimal;
+        function obj = RlcaEnvironment(guiOn,Scenario)
+            obj.tOptimal = Scenario(3,1);
             obj.guiOn = guiOn;
-            obj.eventsOn = eventsOn;
+            obj.eventsOn = 0;
             if obj.guiOn
                 obj.Gui = RlcaGui();
             end
             if obj.eventsOn
                 createevent('Initialising');
             end
+            
+            agent1 = Scenario(1,:);
+            agent2 = Scenario(2,:);
+            obj.createagent(agent1(1),agent1(2),-agent1(1),-agent1(2));
+            obj.createagent(agent2(1),agent2(2),-agent2(1),-agent2(2));
         end
         
-        function obj = runsimulation(obj)
+        function [goalsReached, tElapsedSim] = runsimulation(obj)
             pause(0.5)
             tic
             
@@ -64,11 +69,13 @@ classdef RlcaEnvironment < handle
             end
             tElapsed = toc;
             tElapsedSim = t;
+            goalsReached = obj.goalsReached;
             if obj.eventsOn
                 createevent(['Real Time Elapsed        ' num2str(tElapsed) ' s']);
                 createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
                 createevent(['Real:Simulation Ratio    ' num2str(tElapsedSim/tElapsed)]);
             end
+%             createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
@@ -127,10 +134,8 @@ classdef RlcaEnvironment < handle
             reward = zeros(1,2);
             if obj.collision
                 reward = [RLConstants.COLLISION_PENALTY, RLConstants.COLLISION_PENALTY];
-                disp('Collision')
                 retrocausality = 1;
             elseif obj.goalsReached
-                disp('Goal')
                 %TODO: Timing based reward
                 reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
                 % timing consideration
