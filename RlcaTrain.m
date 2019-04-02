@@ -52,8 +52,8 @@ epsilon = 0.0;
 %% Main Loop
     i = 1;
     run = 1;
-    toGet = 5;
-while run < 6
+    toGet = 3;
+while run < 4
     Scenario = Scenarios{iScenario};
     
     prevQ = Q;
@@ -71,7 +71,11 @@ while run < 6
         nGoals = 0;
         fprintf(['COLL \t Time: ', num2str(tElapsedSim) 's \n'])
     end
-    
+%     iScenario = iScenario + 1;
+%     if iScenario > 7
+%         iScenario = 1;
+%         run = run + 1;
+%     end
     if nGoals == toGet
         iScenario = iScenario + 1;
 
@@ -85,51 +89,54 @@ while run < 6
                     end
         end
     end
+    diff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
+    save('Q.mat','Q');
+    save('visitCount.mat','visitCount');
     
     i = i + 1;
     clear Environment
 end
 
-% %%
-% epsilon = 0.03;
-% iScenario = 1;
-% for i = 1:nRuns
-% 
-%     Scenario = Scenarios{iScenario};
-% 
-%     prevQ = Q;
-%     
-%     Environment = RlcaEnvironment(guiOn,Scenario,2,bestRun(iScenario));
-%     [goal, tElapsedSim] = Environment.runsimulation();
-%     fprintf(['Epsilon: ' num2str(epsilon) '\t Training Stage 2, Step ' num2str(i) ' of ' num2str(nRuns) '\t Scenario: ' num2str(iScenario) '\t Result: '])
-%     if goal
-%         nGoals = nGoals + 1;
-%         fprintf(['GOAL \t Time: ', num2str(tElapsedSim) 's \n'])
-%         if tElapsedSim < bestRun(iScenario)
-%             bestRun(iScenario) = tElapsedSim;
-%         end
-%     else
-%         nGoals = 0;
-%         fprintf(['COLL \t Time: ', num2str(tElapsedSim) 's \n'])
-%     end
-%     
-%     
-%     save('Q.mat','Q');
-%     save('visitCount.mat','visitCount');
-%     
-%     
-%     diff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
-%     
-%         if mod(i,runsPerScenario) == 0
-%             iScenario = mod(i/runsPerScenario,nScenarios) + 1;
-%             if iScenario == 1 && runsPerScenario > 1
-%                 runsPerScenario = runsPerScenario/2;
-%             end
-%         end
-%     
-%     clear Environment
-%     close
-% end
+%%
+epsilon = 0.03;
+iScenario = 1;
+for i = 1:nRuns
+
+    Scenario = Scenarios{iScenario};
+
+    prevQ = Q;
+    
+    Environment = RlcaEnvironment(guiOn,Scenario,2,bestRun(iScenario));
+    [goal, tElapsedSim] = Environment.runsimulation();
+    fprintf(['Epsilon: ' num2str(epsilon) '\t Training Stage 2, Step ' num2str(i) ' of ' num2str(nRuns) '\t Scenario: ' num2str(iScenario) '\t Result: '])
+    if goal
+        nGoals = nGoals + 1;
+        fprintf(['GOAL \t Time: ', num2str(tElapsedSim) 's \n'])
+        if tElapsedSim < bestRun(iScenario)
+            bestRun(iScenario) = tElapsedSim;
+        end
+    else
+        nGoals = 0;
+        fprintf(['COLL \t Time: ', num2str(tElapsedSim) 's \n'])
+    end
+    
+    
+    save('Q.mat','Q');
+    save('visitCount.mat','visitCount');
+    
+    
+    diff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
+    
+        if mod(i,runsPerScenario) == 0
+            iScenario = mod(i/runsPerScenario,nScenarios) + 1;
+            if iScenario == 1 && runsPerScenario > 1
+                runsPerScenario = runsPerScenario/2;
+            end
+        end
+    
+    clear Environment
+    close
+end
 
 %%
 tEnd = datetime('now');
@@ -140,7 +147,7 @@ disp(tRun)
 
 %%
 figure
-plot(1:nRuns,diff)
+plot(1:i-1,diff)
 grid on
 xlabel('iRun');
 ylabel('Mean Q Change');

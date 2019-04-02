@@ -11,5 +11,8 @@ for iScenario = 1:nScenarios
     Scenarios{iScenario} =  data;
 end
 
+% Scenarios = [Scenarios(1), Scenarios(5), Scenarios(2), Scenarios(6),...
+%     Scenarios(3), Scenarios(7), Scenarios(4)];
+
 end
 

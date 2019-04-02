@@ -3,7 +3,7 @@ close
 clear
 
 %%
-guiOn = 1;
+guiOn = 0;
 visualiseQ = 0;
 
 %% Add folders to path
