@@ -28,7 +28,8 @@ classdef RlcaEnvironment < handle
                 obj.bestRun = bestRun;
             end
             obj.stage = stage;
-            obj.tOptimal = Scenario(3,1);
+            %             obj.tOptimal = Scenario(3,1);
+            obj.tOptimal = 30;
             obj.guiOn = guiOn;
             obj.eventsOn = 0;
             if obj.guiOn
@@ -38,10 +39,18 @@ classdef RlcaEnvironment < handle
                 createevent('Initialising');
             end
             
-            agent1 = Scenario(1,:);
-            agent2 = Scenario(2,:);
-            obj.createagent(agent1(1),agent1(2),-agent1(1),-agent1(2));
-            obj.createagent(agent2(1),agent2(2),-agent2(1),-agent2(2));
+            for iAgent = 1:length(Scenario)
+                obj.createagent(Scenario(iAgent,1),Scenario(iAgent,2),-Scenario(iAgent,1),-Scenario(iAgent,2));
+            end
+            %
+            %             agent1 = Scenario(1,:);
+            %             agent2 = Scenario(2,:);
+            % %             obj.createagent(agent1(1),agent1(2),-agent1(1),-agent1(2));
+            % %             obj.createagent(agent2(1),agent2(2),-agent2(1),-agent2(2));
+            %             obj.createagent(100,-100,-100,100);
+            %             obj.createagent(-100,-100,100,100);
+            %             obj.createagent(100,100,-100,-100);
+            %             obj.createagent(-100,100,100,-100);
         end
         
         function [goalsReached, tElapsedSim] = runsimulation(obj)
@@ -55,7 +64,7 @@ classdef RlcaEnvironment < handle
             
             t = EnvironmentConstants.START_TIME - EnvironmentConstants.TIME_STEP;
             
-            while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME && obj.collision == 0
+            while nnz(obj.isAgentStatic) ~= obj.nAgents && t < EnvironmentConstants.MAX_TIME && nnz(obj.collision) < 1
                 t = t + EnvironmentConstants.TIME_STEP;
                 obj.time = t;
                 obj = obj.updateagents();
@@ -113,6 +122,7 @@ classdef RlcaEnvironment < handle
         end
         
         function [isAgentStatic, collision, goalsReached] = assessagents(obj)
+            collision = zeros(obj.nAgents,obj.nAgents);
             goalsReached = 0;
             isAgentStatic = zeros(obj.nAgents,1);
             for iAgent = 1:obj.nAgents
@@ -123,25 +133,47 @@ classdef RlcaEnvironment < handle
                 goalsReached = 1;
             end
             
-            agent1Pos = obj.Agents{1}.position;
-            agent2Pos = obj.Agents{2}.position;
             r = 1.06*AgentConstants.RADIUS;
-            
-            [x,~] = circcirc(agent1Pos(1),agent1Pos(2),r,agent2Pos(1),agent2Pos(2),r);
-            
-            if ~isnan(x) % If there is an intersection point, the agents have collided
-                collision = 1;
-            else
-                collision = 0;
+            for iAgent = 1:obj.nAgents
+                agent1Pos = obj.Agents{iAgent}.position;
+                for jAgent = 1:obj.nAgents
+                    agent2Pos = obj.Agents{jAgent}.position;
+                    if iAgent ~= jAgent
+                        [x,~] = circcirc(agent1Pos(1),agent1Pos(2),r,agent2Pos(1),agent2Pos(2),r);
+                        if ~isnan(x)
+                            collision(iAgent,jAgent) = 1;
+                        end
+                    end
+                end
             end
+            %             agent1Pos = obj.Agents{1}.position;
+            %             agent2Pos = obj.Agents{2}.position;
+            % %             agent3Pos = obj.Agents{3}.position;
+            %
+            %
+            %             [x1,~] = circcirc(agent1Pos(1),agent1Pos(2),r,agent2Pos(1),agent2Pos(2),r);
+            %             [x2,~] = circcirc(agent1Pos(1),agent1Pos(2),r,agent3Pos(1),agent3Pos(2),r);
+            %             [x3,~] = circcirc(agent2Pos(1),agent2Pos(2),r,agent3Pos(1),agent3Pos(2),r);
+            %             if ~isnan(x1) % If there is an intersection point, the agents have collided
+            %                 collision = 1;
+            %             else
+            %                 collision = 0;
+            %             end
         end
         
         function [obj] = assessq(obj)
             
-            reward = zeros(1,2);
-            if obj.collision
+            reward = zeros(1,obj.nAgents);
+            if nnz(obj.collision) > 0
                 if obj.stage == 1
-                    reward = [RLConstants.COLLISION_PENALTY, RLConstants.COLLISION_PENALTY];
+                    for iAgent = 1:obj.nAgents
+                        if nnz(obj.collision(:,iAgent)) > 0 && ~obj.Agents{iAgent}.isAtGoal
+                            reward(iAgent) = RLConstants.COLLISION_PENALTY;
+                            
+                        else
+                            reward(iAgent) = 0;
+                        end
+                    end
                     retrocausality = 1;
                 else
                     reward = [];
@@ -149,21 +181,21 @@ classdef RlcaEnvironment < handle
                 end
             elseif obj.goalsReached
                 if obj.stage == 1
-                    reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
+                    reward = ones(1,obj.nAgents)*RLConstants.GOAL_REWARD;
                     % timing consideration
                     efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal);
                     reward = reward*efficiency;
                 else
                     if obj.time < obj.bestRun
                         %TODO: Timing based reward
-                        reward = [RLConstants.GOAL_REWARD, RLConstants.GOAL_REWARD];
+                        reward = 4*ones(1,obj.nAgents)*RLConstants.GOAL_REWARD;
                         % timing consideration
-                        efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal)^0.8;
+                        efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal);
                         reward = reward*efficiency;
                     elseif obj.time == obj.bestRun
                         reward = [];
                     else
-                        reward = [0, 0];
+                        reward = [];
                     end
                 end
                 

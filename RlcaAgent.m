@@ -40,11 +40,12 @@ classdef RlcaAgent
             obj.position = [x0, y0];
             obj.goal = [xg, yg];
             
+            
             deltaP = obj.goal - obj.position;
             obj.goalHeading = atan2(deltaP(2),deltaP(1));
             
             [obj.heading, obj.headingVector] = obj.calcheading();
-            
+            obj.Velocity = obj.headingVector*AgentConstants.MAX_SPEED;
             obj.distanceToGoal = obj.calcdistancetogoal();
         end
         
@@ -190,6 +191,11 @@ classdef RlcaAgent
             else
                 p = obj.position;
                 np = obj.Neighbours.position;
+                if size(np,1) > 1
+                    diff = abs(p-np);
+                    [~,idx] = min(sum(diff')');
+                    np = obj.Neighbours.position(idx,:);
+                end
                 h = obj.heading;
                 deltaP = obj.goal - obj.position;
                 gh = atan2(deltaP(2),deltaP(1));
@@ -217,7 +223,9 @@ classdef RlcaAgent
         end
         
         function velocityTranslated = translatevelocity(obj,Velocity,theta)
-            
+            if nnz(isnan(Velocity)) > 0
+                1;
+            end
             rotationMatrix = [cos(theta), -sin(theta); sin(theta), cos(theta)];
             
             velocityTranslated = (rotationMatrix*Velocity')';
@@ -247,14 +255,11 @@ classdef RlcaAgent
             Velocity = obj.translatevelocity(Velocity,theta);
             Velocity = round(Velocity,6);
             Velocity = obj.matchvelocity(Velocity);
-            if nnz(isnan(Velocity)) > 0
-                1;
-            end
             
         end
         
         function [Velocity] = matchvelocity(~,exactVelocity)
-            [v,~] = pol2cart(linspace(0, pi, 51), AgentConstants.MAX_SPEED);
+            v = linspace(-AgentConstants.MAX_SPEED,AgentConstants.MAX_SPEED,101);
             v = round(v,3);
             Velocity = interp1(v,v,exactVelocity,'nearest');
             

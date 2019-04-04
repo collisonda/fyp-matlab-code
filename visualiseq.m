@@ -1,4 +1,4 @@
-global S
+S = createstatespace;
 load('Q.mat')
 count = 1;
 figure('Units','normalized','Position',[0.1 0.1 0.8 0.8]);
