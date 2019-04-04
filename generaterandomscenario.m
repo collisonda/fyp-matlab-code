@@ -1,23 +1,23 @@
 function Scenario = generaterandomscenario()
-maxAgents = 6;
+maxAgents = 4;
 
 xLim = [-100 100];
 yLim = [-100 100];
 
 nAgents = round((maxAgents-2)*rand)+2;
 
-positions = zeros(nAgents,2);
+positions = zeros(nAgents,4);
 
 nOverlaps = nAgents;
 
-r = AgentConstants.RADIUS * 3;
+r = AgentConstants.RADIUS * 5;
 
 while nOverlaps > 0
     overlaps = zeros(1,nAgents);
     for iAgent = 1:nAgents
         x = xLim(1) + 2*xLim(2)*rand;
         y = yLim(1) + 2*yLim(2)*rand;
-        positions(iAgent,:) =  [x,y];
+        positions(iAgent,:) =  [x,y,-x,-y];
     end
     
     for iAgent = 1:nAgents

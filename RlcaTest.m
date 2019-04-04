@@ -32,8 +32,9 @@ epsilon = 0;
 %% Run Settings
 nEpochs = 10;
 nScenarios = 7;
-Scenarios = generatescenarios(nScenarios);
+Scenarios = generatescenarios();
 iScenario = 1;
+nEpochs = length(Scenarios);
 
 %%
 tStart = datetime('now');
@@ -42,9 +43,9 @@ diff = zeros(1,nEpochs);
 
 %% Main Loop
 for i = 1:nEpochs
-%     iScenario = mod(i-1,nScenarios+3) + 1;
-%     Scenario = Scenarios{iScenario};
-    Scenario = generaterandomscenario;
+    iScenario = mod(i-1,nScenarios+3) + 1;
+    Scenario = Scenarios{iScenario};
+% Scenario = generaterandomscenario;
     
     Environment = RlcaEnvironment(guiOn,Scenario,1);
     [goal, tElapsedSim] = Environment.runsimulation();

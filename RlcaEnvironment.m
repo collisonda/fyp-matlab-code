@@ -39,8 +39,8 @@ classdef RlcaEnvironment < handle
                 createevent('Initialising');
             end
             
-            for iAgent = 1:length(Scenario)
-                obj.createagent(Scenario(iAgent,1),Scenario(iAgent,2),-Scenario(iAgent,1),-Scenario(iAgent,2));
+            for iAgent = 1:size(Scenario,1)
+                obj.createagent(Scenario(iAgent,1),Scenario(iAgent,2),Scenario(iAgent,3),Scenario(iAgent,4));
             end
             %
             %             agent1 = Scenario(1,:);
