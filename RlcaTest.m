@@ -31,10 +31,14 @@ epsilon = 0;
 
 %% Run Settings
 nEpochs = 10;
-nScenarios = 7;
-Scenarios = generatescenarios();
-iScenario = 1;
-nEpochs = length(Scenarios);
+
+% Scenarios = generatescenarios();
+iScenario = 0;
+
+% nScenarios = length(Scenario);
+nScenarios = 6;
+goals = zeros(1,nScenarios);
+nEpochs = nScenarios;
 
 %%
 tStart = datetime('now');
@@ -42,15 +46,14 @@ tStart = datetime('now');
 diff = zeros(1,nEpochs);
 
 %% Main Loop
-for i = 1:nEpochs
-    iScenario = mod(i-1,nScenarios+3) + 1;
-    Scenario = Scenarios{iScenario};
-% Scenario = generaterandomscenario;
+for i = 1:nScenarios
+Scenario = generaterandomscenario;
     
     Environment = RlcaEnvironment(guiOn,Scenario,1);
     [goal, tElapsedSim] = Environment.runsimulation();
     fprintf(['Test ' num2str(i) ' of ' num2str(nEpochs) '\t Scenario: ' num2str(iScenario) '\t Result: '])
     if goal
+        goals(i) = 1;
         fprintf(['GOAL \t Time: ', num2str(tElapsedSim) 's \n'])
     else
         fprintf(['COLL \t Time: ', num2str(tElapsedSim) 's \n'])
@@ -64,10 +67,10 @@ end
 
 %%
 tEnd = datetime('now');
-tElapsed = duration(tEnd-tStart);
+tElapsed = seconds(duration(tEnd-tStart));
 tRun = tElapsed/nEpochs;
-disp(tElapsed)
-disp(tRun)
+successRate = 100*nnz(goals)/nScenarios;
+fprintf(['Time Elapsed: ' num2str(tElapsed) '\t Time Per Run: ' num2str(tRun) '\t Success Rate: ' num2str(successRate) '%% \n'])
 
 %%
 if visualiseQ

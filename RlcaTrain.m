@@ -1,11 +1,16 @@
 %%
+% TODO: Train the model on 2, 3, and 4 agents at all different angles
+% around the circle
+
+
+%%
 clc
 close
 % clear
 
 %%
 guiOn       = 0;
-resetQ      = 0;
+resetQ      = 1;
 visualiseQ  = 0;
 
 %% Add folders to path
@@ -36,12 +41,10 @@ A = createactionspace();
 S = createstatespace();
 
 %%
-nEpochs = 4;
-Scenarios = generatescenarios();
-nScenarios = length(Scenarios);
+
 iScenario = 1;
-runsPerScenario = 32;
-bestRun = 50*ones(1,nScenarios);
+runsPerScenario = 1;
+
 count = 0;
 
 %%
@@ -52,163 +55,101 @@ epsilon = 0.0;
 
 % %% Main Loop
 i = 1;
+j = 1;
 epoch = 1;
+nEpochs = 4;
 toGet = 3;
 tic
-while epoch < nEpochs
-    Scenario = Scenarios{iScenario};
-%     
-    prevQ = Q;
-    
-    Environment = RlcaEnvironment(guiOn,Scenario,1,bestRun(iScenario));
-    [goal, tElapsedSim] = Environment.runsimulation();
-    fprintf(['Epoch: ' num2str(epoch) '\t Training Stage 1, Step ' num2str(i) '\t Scenario: ' num2str(iScenario) '\t Result: '])
-    if goal
-        nGoals = nGoals + 1;
-        fprintf(['GOAL \t Time: ', num2str(tElapsedSim, '%.2f') 's \t'])
-        if tElapsedSim < bestRun(iScenario)
-            bestRun(iScenario) = tElapsedSim;
-        end
-    else
-        nGoals = 0;
-        fprintf(['COLL \t Time: ', num2str(tElapsedSim, '%.2f') 's \t'])
+for iStage = 1:4
+    switch iStage
+        case 1
+            epoch = 1;
+            nEpochs = 4;
+            toGet = 3;
+            nGoals = 0;
+            Scenarios = generatescenarios();
+            Scenarios = Scenarios(1:7);
+            nScenarios = length(Scenarios);
+            bestRun = 50*ones(1,nScenarios);
+        case 2
+            j = 1;
+            epoch = 1;
+            nEpochs = 4;
+            toGet = 3;
+            nGoals = 0;
+            Scenarios = generatescenarios();
+            Scenarios = Scenarios(8:28);
+            nScenarios = length(Scenarios);
+            bestRun = 50*ones(1,nScenarios);
+        case 3
+            j = 1;
+            epoch = 1;
+            nEpochs = 4;
+            toGet = 3;
+            nGoals = 0;
+            Scenarios = generatescenarios();
+            Scenarios = Scenarios(29:end);
+            nScenarios = length(Scenarios);
+            bestRun = 50*ones(1,nScenarios);
+        case 4
+            j = 1;
+            epoch = 1;
+            nEpochs = 2;
+            toGet = 1;
+            nGoals = 0;
+            Scenarios = generatescenarios();
+            nScenarios = length(Scenarios);
+            bestRun = 50*ones(1,nScenarios);
+            
+        otherwise
     end
-    fprintf(['tStep: ' num2str(toc, '%.3f') '\n']);
-    tic
-    %     iScenario = iScenario + 1;
-    %     if iScenario > nScenarios
-    %         iScenario = 1;
-    %         run = run + 1;
-    %     end
-    
-    if nGoals == toGet
-        iScenario = iScenario + 1;
+    while epoch < nEpochs
+        Scenario = Scenarios{iScenario};
+        %
+        prevQ = Q;
         
-        nGoals =0;
-        if iScenario > nScenarios
-            iScenario = 1;
-            epoch = epoch + 1;
-            toGet = toGet - 1;
-            if toGet < 1
-                toGet = 1;
+        Environment = RlcaEnvironment(guiOn,Scenario,1,bestRun(iScenario));
+        [goal, tElapsedSim] = Environment.runsimulation();
+        fprintf(['Training Stage: ' num2str(iStage) '\t Epoch: ' num2str(epoch)  '\t Step: ' num2str(j) '\t Scenario: ' num2str(iScenario) '\t Result: '])
+        if goal
+            nGoals = nGoals + 1;
+            fprintf(['GOAL \t Time: ', num2str(tElapsedSim, '%.2f') 's \t'])
+            if tElapsedSim < bestRun(iScenario)
+                bestRun(iScenario) = tElapsedSim;
+                nGoals = nGoals + 1;
+            end
+        else
+            nGoals = 0;
+            fprintf(['COLL \t Time: ', num2str(tElapsedSim, '%.2f') 's \t'])
+        end
+        fprintf(['tStep: ' num2str(toc, '%.3f') '\n']);
+        tic
+        if nGoals == toGet
+            nGoals = 0;
+            iScenario = iScenario + 1;
+            if iScenario > nScenarios
+                iScenario = 1;
+                epoch = epoch + 1;
+                
             end
         end
+        diff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
+        save('Q.mat','Q');
+        save('visitCount.mat','visitCount');
+        
+        i = i + 1;
+        j = j + 1;
+        clear Environment
+        close
     end
-
-% if nGoals == toGet
-%    Scenario = generaterandomscenario;
-%    epoch = epoch + 1;
-% end
-
-    diff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
-    save('Q.mat','Q');
-    save('visitCount.mat','visitCount');
-    
-    i = i + 1;
-    clear Environment
-    close
 end
 
-while nGoals < 10
-    Scenario = generaterandomscenario;
-%     
-    prevQ = Q;
-    
-    Environment = RlcaEnvironment(guiOn,Scenario,1,bestRun(iScenario));
-    tic
-    [goal, tElapsedSim] = Environment.runsimulation();
-    fprintf(['Epoch: ' num2str(epoch) '\t Training Stage 2, Step ' num2str(i) '\t Scenario: ' num2str(iScenario) '\t Result: '])
-    if goal
-        nGoals = nGoals + 1;
-        fprintf(['GOAL \t Time: ', num2str(tElapsedSim, '%.2f') 's \t'])
-        if tElapsedSim < bestRun(iScenario)
-            bestRun(iScenario) = tElapsedSim;
-        end
-    else
-        nGoals = 0;
-        fprintf(['COLL \t Time: ', num2str(tElapsedSim, '%.2f') 's \t'])
-    end
-    fprintf(['tStep: ' num2str(toc, '%.3f') '\n']);
-    %     iScenario = iScenario + 1;
-    %     if iScenario > nScenarios
-    %         iScenario = 1;
-    %         run = run + 1;
-    %     end
-    
-%     if nGoals == toGet
-%         iScenario = iScenario + 1;
-%         
-%         nGoals =0;
-%         if iScenario > nScenarios
-%             iScenario = 1;
-%             epoch = epoch + 1;
-%             toGet = toGet - 1;
-%             if toGet < 1
-%                 toGet = 1;
-%             end
-%         end
-%     end
-
-% if nGoals == toGet
-%    Scenario = generaterandomscenario;
-%    epoch = epoch + 1;
-% end
-
-    diff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
-    save('Q.mat','Q');
-    save('visitCount.mat','visitCount');
-    
-    i = i + 1;
-    clear Environment
-    close
-end
-
-%%
-% epsilon = 0.5;
-% iScenario = 1;
-% for i = 1:nRuns
-%     
-%     Scenario = Scenarios{iScenario};
-%     
-%     prevQ = Q;
-%     
-%     Environment = RlcaEnvironment(guiOn,Scenario,2,bestRun(iScenario));
-%     [goal, tElapsedSim] = Environment.runsimulation();
-%     fprintf(['Epsilon: ' num2str(epsilon) '\t Training Stage 2, Step ' num2str(i) ' of ' num2str(nRuns) '\t Scenario: ' num2str(iScenario) '\t Result: '])
-%     if goal
-%         nGoals = nGoals + 1;
-%         fprintf(['GOAL \t Time: ', num2str(tElapsedSim) 's \n'])
-%         if tElapsedSim < bestRun(iScenario)
-%             bestRun(iScenario) = tElapsedSim;
-%             disp('Found new best run')
-%         end
-%     else
-%         nGoals = 0;
-%         fprintf(['COLL \t Time: ', num2str(tElapsedSim) 's \n'])
-%     end
-%     
-%     
-%     save('Q.mat','Q');
-%     save('visitCount.mat','visitCount');
-%     
-%     
-%     diff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
-%     
-%     if mod(i,runsPerScenario) == 0
-%         iScenario = mod(i/runsPerScenario,nScenarios) + 1;
-%         if iScenario == 1 && runsPerScenario > 1
-%             runsPerScenario = runsPerScenario/2;
-%         end
-%     end
-%     
-%     clear Environment
-%     close
-% end
+%% TODO: Fourth stage with random scenarios
 
 %%
 tEnd = datetime('now');
 tElapsed = duration(tEnd-tStart);
-tRun = tElapsed/nEpochs;
+tRun = tElapsed/i;
 disp(tElapsed)
 disp(tRun)
 
