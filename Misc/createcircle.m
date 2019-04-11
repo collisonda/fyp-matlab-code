@@ -1,8 +1,8 @@
 function [xunit,yunit] = createcircle(x,y,r)
-%CREATECIRCLE Summary of this function goes here
-%   Detailed explanation goes here
-th = 0:pi/50:2*pi;
-xunit = r * cos(th) + x;
-yunit = r * sin(th) + y;
+%CREATECIRCLE Creates a circle with a given centre and radius.
+
+theta = 0:pi/50:2*pi;
+xunit = r * cos(theta) + x;
+yunit = r * sin(theta) + y;
 end
 

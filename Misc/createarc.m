@@ -1,8 +1,11 @@
 function [x, y] = createarc(a,b,h,k,r)
+%CREATEARC Creates an arc with a given centre, radius, and angle.
+
 % a is start of arc in radians, 
 % b is end of arc in radians, 
 % (h,k) is the center of the circle.
 % r is the radius.
+
 t = linspace(a,b);
 x = r*cos(t) + h;
 y = r*sin(t) + k;

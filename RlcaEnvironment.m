@@ -1,6 +1,6 @@
 classdef RlcaEnvironment < handle
-    %ENVIRONMENT Summary of this class goes here
-    %   Detailed explanation goes here
+    %RLCAENVIRONMENT Summary of this class goes here
+    %   Author: Dale Collison
     
     %% RlcaEnvironment - Properties
     properties
@@ -14,21 +14,15 @@ classdef RlcaEnvironment < handle
         guiOn
         eventsOn
         tOptimal
-        bestRun
-        stage
+        isTraining
     end
     
     %% RlcaEnvironment - Public Methods
     methods (Access = public)
         
-        function obj = RlcaEnvironment(guiOn,Scenario,stage,bestRun)
-            if nargin == 3
-                obj.bestRun = 0;
-            else
-                obj.bestRun = bestRun;
-            end
-            obj.stage = stage;
-            %             obj.tOptimal = Scenario(3,1);
+        function obj = RlcaEnvironment(guiOn,Scenario,isTraining)
+            
+            obj.isTraining = isTraining;
             obj.tOptimal = 30;
             obj.guiOn = guiOn;
             obj.eventsOn = 0;
@@ -42,15 +36,7 @@ classdef RlcaEnvironment < handle
             for iAgent = 1:size(Scenario,1)
                 obj.createagent(Scenario(iAgent,1),Scenario(iAgent,2),Scenario(iAgent,3),Scenario(iAgent,4));
             end
-            %
-            %             agent1 = Scenario(1,:);
-            %             agent2 = Scenario(2,:);
-            % %             obj.createagent(agent1(1),agent1(2),-agent1(1),-agent1(2));
-            % %             obj.createagent(agent2(1),agent2(2),-agent2(1),-agent2(2));
-            %             obj.createagent(100,-100,-100,100);
-            %             obj.createagent(-100,-100,100,100);
-            %             obj.createagent(100,100,-100,-100);
-            %             obj.createagent(-100,100,100,-100);
+            
         end
         
         function [goalsReached, tElapsedSim] = runsimulation(obj)
@@ -74,7 +60,7 @@ classdef RlcaEnvironment < handle
                     obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 end
                 
-                if obj.stage ~= 0
+                if obj.isTraining == 1
                     obj.assessq();
                 end
                 
@@ -91,7 +77,6 @@ classdef RlcaEnvironment < handle
                 createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
                 createevent(['Real:Simulation Ratio    ' num2str(tElapsedSim/tElapsed)]);
             end
-            %             createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
@@ -110,7 +95,6 @@ classdef RlcaEnvironment < handle
         
         function obj = updateagents(obj)
             for iAgent = 1:obj.nAgents
-                %TODO: Code to tell agent its neighbours
                 for jAgent = 1:obj.nAgents
                     if iAgent ~= jAgent
                         obj.Agents{iAgent} = obj.Agents{iAgent}.addneighbour(obj.Agents{jAgent});
@@ -146,58 +130,31 @@ classdef RlcaEnvironment < handle
                     end
                 end
             end
-            %             agent1Pos = obj.Agents{1}.position;
-            %             agent2Pos = obj.Agents{2}.position;
-            % %             agent3Pos = obj.Agents{3}.position;
-            %
-            %
-            %             [x1,~] = circcirc(agent1Pos(1),agent1Pos(2),r,agent2Pos(1),agent2Pos(2),r);
-            %             [x2,~] = circcirc(agent1Pos(1),agent1Pos(2),r,agent3Pos(1),agent3Pos(2),r);
-            %             [x3,~] = circcirc(agent2Pos(1),agent2Pos(2),r,agent3Pos(1),agent3Pos(2),r);
-            %             if ~isnan(x1) % If there is an intersection point, the agents have collided
-            %                 collision = 1;
-            %             else
-            %                 collision = 0;
-            %             end
+            
         end
         
         function [obj] = assessq(obj)
             
             reward = zeros(1,obj.nAgents);
             if nnz(obj.collision) > 0
-                if obj.stage == 1
-                    for iAgent = 1:obj.nAgents
-                        if nnz(obj.collision(:,iAgent)) > 0 && ~obj.Agents{iAgent}.isAtGoal
-                            reward(iAgent) = RLConstants.COLLISION_PENALTY;
-                            
-                        else
-                            reward(iAgent) = 0;
-                        end
-                    end
-                    retrocausality = 1;
-                else
-                    reward = [];
-                    retrocausality = 1;
-                end
-            elseif obj.goalsReached
-                if obj.stage == 1
-                    reward = ones(1,obj.nAgents)*RLConstants.GOAL_REWARD;
-                    % timing consideration
-                    efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal);
-                    reward = reward*efficiency;
-                else
-                    if obj.time < obj.bestRun
-                        %TODO: Timing based reward
-                        reward = 4*ones(1,obj.nAgents)*RLConstants.GOAL_REWARD;
-                        % timing consideration
-                        efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal);
-                        reward = reward*efficiency;
-                    elseif obj.time == obj.bestRun
-                        reward = [];
+                
+                for iAgent = 1:obj.nAgents
+                    if nnz(obj.collision(:,iAgent)) > 0 && ~obj.Agents{iAgent}.isAtGoal
+                        reward(iAgent) = RLConstants.COLLISION_PENALTY;
+                        
                     else
-                        reward = [];
+                        reward(iAgent) = 0;
                     end
                 end
+                retrocausality = 1;
+                
+            elseif obj.goalsReached
+                
+                reward = ones(1,obj.nAgents)*RLConstants.GOAL_REWARD;
+                % timing consideration
+                efficiency = 1-((obj.time-obj.tOptimal)/obj.tOptimal);
+                reward = reward*efficiency;
+                
                 
                 retrocausality = 1;
             else
@@ -234,8 +191,6 @@ classdef RlcaEnvironment < handle
                 R = R + shR;
             end
             
-            %TODO: Penalty if action puts agent too close to neighbour
-            
         end
         
         function obj = applyreward(obj,reward,retrocausality)
@@ -252,8 +207,6 @@ classdef RlcaEnvironment < handle
                     nonGoalIdx = Agent.PastStates ~= 0;
                     nonGoalStates = Agent.PastStates(nonGoalIdx);
                     nonGoalActions = Agent.PastActions(nonGoalIdx);
-                    % ERROR: FOR SOME REASON THE ACTION IT CHOOSES JUST
-                    % BEFORE COLLIDING HAS A LOW Q VALUE
                     
                     for iAction = 1:length(nonGoalActions)
                         iState = iAction;
@@ -297,7 +250,6 @@ classdef RlcaEnvironment < handle
             
         end
         
-        
     end
+    
 end
-

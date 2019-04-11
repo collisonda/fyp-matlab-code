@@ -1,4 +1,8 @@
 function Scenario = generaterandomscenario()
+%GENERATERANDOMSCENARIO Generates a scenario with a random amount of agents
+%at random positions.
+%       Author: Dale Collison
+
 maxAgents = 4;
 
 xLim = [-100 100];
@@ -10,7 +14,7 @@ positions = zeros(nAgents,4);
 
 nOverlaps = nAgents;
 
-r = AgentConstants.RADIUS * 5;
+r = AgentConstants.RADIUS * 6;
 
 while nOverlaps > 0
     overlaps = zeros(1,nAgents);
@@ -37,3 +41,5 @@ while nOverlaps > 0
 end
 
 Scenario = positions;
+
+end

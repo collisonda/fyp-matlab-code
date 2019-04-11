@@ -1,18 +1,15 @@
 classdef RLConstants < handle
-    %UNTITLED Summary of this class goes here
-    %   Detailed explanation goes here
+    %RLConstants Class storing all the constants for reinforcement learning.
+    %   Author: Dale Collison
     
     properties (Constant)
-        DISCOUNT_FACTOR = 0.95;
-        INITIAL_EPSILON = 0.5;
-        EPSILON_DECAY_RATE = 0.98;
-        GOAL_DISTANCE_WEIGHT = 0;
-        SIMILAR_HEADING_WEIGHT = 10;
-        GOAL_REWARD = 15;
-        COLLISION_PENALTY = -100;
-        BASE_FACTOR = 0.02;
-        PROXIMITY_PENTALTY = 20;
+        DISCOUNT_FACTOR = 0.95;         % Discount factor for each past action.
+        GOAL_DISTANCE_WEIGHT = 0;       % Weight of the reward based on the 
+                                        % change in distance to goal.
+        SIMILAR_HEADING_WEIGHT = 10;    % Weight of the reward based on keeping
+                                        % a heading close to the goal heading.
+        GOAL_REWARD = 15;               % Base reward for reaching the goal.
+        COLLISION_PENALTY = -100;       % Base penalty for colliding.        
     end
-
+    
 end
-

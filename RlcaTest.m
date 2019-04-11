@@ -3,8 +3,8 @@ close
 clear
 
 %% Settings to Change
-guiOn = 1;
-visualiseQ = 0;
+guiOn       = 1; % Toggles GUI.
+visualiseQ  = 0; % Toggles the visualisation of Q after testing.
 
 %% Add folders to path
 addpath('Constants')
@@ -15,7 +15,6 @@ set(0, 'DefaultFigureRenderer', 'opengl');
 opengl hardware
 
 %% Declare Globals
-global epsilon
 global Q
 global S
 global A
@@ -23,31 +22,28 @@ global visitCount
 
 %% Assign Globals
 load('Q.mat')
-load('VisitCount.mat')
+load('visitCount.mat')
 
 A = createactionspace();
 S = createstatespace();
-epsilon = 0;
 
 %% Run Settings
 nEpochs = 10;
 
-% Scenarios = generatescenarios();
-iScenario = 0;
+Scenarios = generatetestingscenarios();
+iScenario = 1;
 
-% nScenarios = length(Scenario);
-nScenarios = 6;
+nScenarios = length(Scenarios);
 goals = zeros(1,nScenarios);
 nEpochs = nScenarios;
 
 %%
 tStart = datetime('now');
 
-diff = zeros(1,nEpochs);
-
 %% Main Loop
 for i = 1:nScenarios
-Scenario = generaterandomscenario;
+% Scenario = generaterandomscenario;
+Scenario = Scenarios{iScenario};
     
     Environment = RlcaEnvironment(guiOn,Scenario,1);
     [goal, tElapsedSim] = Environment.runsimulation();
@@ -59,6 +55,7 @@ Scenario = generaterandomscenario;
         fprintf(['COLL \t Time: ', num2str(tElapsedSim) 's \n'])
     end
     
+    iScenario = iScenario + 1;
 %     save('Q.mat','Q');
 %     save('visitCount.mat','visitCount');
     clear Environment

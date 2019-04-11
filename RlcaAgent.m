@@ -1,5 +1,5 @@
 classdef RlcaAgent
-    %AGENT Summary of this class goes here
+    %RLCAAGENT Summary of this class goes here
     % Author: Dale Collison
     
     %% RlcaAgent - Properties
@@ -27,7 +27,6 @@ classdef RlcaAgent
         PastStates = []
         actionId = -1;
         PastActions = []
-        %         epsilon = RLConstants.INITIAL_EPSILON
     end
     
     %% RlcaAgent - Public Methods
@@ -90,12 +89,10 @@ classdef RlcaAgent
                 obj.Neighbours.velocity(iNeighbour,:) = [];
                 obj.Neighbours.radius(iNeighbour) = [];
                 obj.neighbourIds(iNeighbour) = [];
-                %                 createevent(['Agent ' num2str(obj.iAgent) ' Lost Agent ' num2str(Neighbour.iAgent)])
             elseif isWithinNeighbourhood
                 if isempty(iNeighbour)
                     iNeighbour = length(obj.neighbourIds)+1;
                     obj.neighbourIds(end+1) = Neighbour.iAgent;
-                    %                     createevent(['Agent ' num2str(obj.iAgent) ' Detected Agent ' num2str(Neighbour.iAgent)])
                 end
                 obj.Neighbours.position(iNeighbour,:) = Neighbour.position;
                 obj.Neighbours.velocity(iNeighbour,:) = Neighbour.Velocity;
@@ -111,13 +108,9 @@ classdef RlcaAgent
         function [actionId, heading, Velocity] = calcaction(obj)
             global Q
             global A
-            global epsilon
             global visitCount
-            %             epsilon = obj.epsilon;
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [Velocity] = obj.calcgoalvelocity();
-                %                 actionId = obj.getactionid(Velocity);
-                %                 heading = atan2(Velocity(2),Velocity(1));
             else
                 % Choose an action
                 sV = visitCount(:,:,obj.stateId);
@@ -148,9 +141,7 @@ classdef RlcaAgent
                         c = c(iC);
                     end
                     Velocity = A{r,c};
-                else % Try an unexplored
-                    %                     sV = visitCount(:,:,obj.stateId);
-                    %                     [r,c] = find(sV==0);
+                else % Try an unexplored action
                     iR = 1;
                     iC = 1;
                     deltaP = obj.goal - obj.position;
@@ -222,7 +213,7 @@ classdef RlcaAgent
             end
         end
         
-        function velocityTranslated = translatevelocity(obj,Velocity,theta)
+        function velocityTranslated = translatevelocity(~,Velocity,theta)
             if nnz(isnan(Velocity)) > 0
                 1;
             end
@@ -230,13 +221,9 @@ classdef RlcaAgent
             
             velocityTranslated = (rotationMatrix*Velocity')';
             
-            %             velocityTranslated = obj.matchvelocity(velocityTranslated);
-            
         end
         
         function npTranslated = translateneighbourposition(~,p,np,gh)
-            % TODO: Translate the position of the neighbour to be relative
-            % to the agent's position and in the direction of its goal.
             deltaPNeighbour = (np - p);
             deltaH = -gh+pi/2;
             
@@ -262,7 +249,6 @@ classdef RlcaAgent
             v = linspace(-AgentConstants.MAX_SPEED,AgentConstants.MAX_SPEED,101);
             v = round(v,3);
             Velocity = interp1(v,v,exactVelocity,'nearest');
-            
         end
         
         function actionId = getactionid(~,Velocity)

@@ -3,7 +3,6 @@ classdef RlcaGui < handle
     %Interface
     %   Detailed explanation goes here
     
-    % TODO: Arrow showing agent heading
     
     %% RlcaGui - Properties
     properties
@@ -17,8 +16,6 @@ classdef RlcaGui < handle
         AgentVision
         colourSettings
         time
-        restartButton
-        closeButton
     end
     
     %% RlcaGui - Public Methods
@@ -31,12 +28,6 @@ classdef RlcaGui < handle
             obj.Window = figure('Name','RLCA GUI','Position',windowSettings,...
                 'GraphicsSmoothing','on','Resize','off');
             obj.setupenvironmentplot();
-            obj.restartButton = uicontrol(obj.Window,'Style','PushButton',...
-                'Units','Normalized','Position',[0.87,0.208,0.08,0.08],...
-                'String','Restart','FontWeight','bold','Callback',@(src,event)obj.restart);
-            obj.closeButton = uicontrol(obj.Window,'Style','PushButton',...
-                'Units','Normalized','Position',[0.87,0.108,0.08,0.08],...
-                'String','Close','FontWeight','bold','Callback',@(src,event)obj.closegui);
         end
         
         function obj = generateagentgraphic(obj,Agent)
@@ -95,16 +86,6 @@ classdef RlcaGui < handle
                 obj.AgentVision{iAgent}.YData = ny;
             end
             drawnow
-        end
-        
-        function restart(src,event)
-            RlcaSetup;
-            return
-        end
-        
-        function closegui(src,event)
-            close all
-            return
         end
         
     end
