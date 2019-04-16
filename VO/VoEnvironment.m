@@ -92,9 +92,9 @@ classdef VoEnvironment < handle
                     if iAgent ~= jAgent
                         obj.Agents{iAgent} = obj.Agents{iAgent}.addneighbour(obj.Agents{jAgent});
                     end
-                               obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();  
+                               
                 end
-                
+                obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();  
                 
             end
             

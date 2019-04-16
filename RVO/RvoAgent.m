@@ -118,7 +118,7 @@ classdef RvoAgent
                 % THE CLEAR PATH STRATEGY
                 [Velocity] = obj.strategy_clearPath(v_i,DesiredVelocity,VO);
                 
-                Velocity = obj.matchvelocity(Velocity);
+%                 Velocity = obj.matchvelocity(Velocity);
                 Velocity = Velocity';
                 heading = atan2(Velocity(2),Velocity(1));
             end
@@ -384,7 +384,7 @@ classdef RvoAgent
             
             % ///// CHOOSE OPTIMAL VELOCITY FROM THE CANDIDATE POINTS /////
             optimalMetricDistance = inf;  % Metric of optimality
-            compareVelocity = [0;0];
+            compareVelocity = desiredVelocity;
             
             % DEFAULT VELOCITY
             optimalVelocity = zeros(2,1);
@@ -393,7 +393,7 @@ classdef RvoAgent
                 % ASSESS VELOCITIES AGAINST THE DESIRED VELOCITY
                 for k = 1:size(candidatesOutsideVO,2)
                     dis = norm(candidatesOutsideVO(:,k) - compareVelocity);
-                    if dis <= AgentConstants.MAX_SPEED
+                    if dis < optimalMetricDistance
                         optimalVelocity = candidatesOutsideVO(:,k);
                         optimalMetricDistance = dis;
                     end

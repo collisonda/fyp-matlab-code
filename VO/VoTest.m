@@ -8,6 +8,7 @@ guiOn       = 1; % Toggles GUI.
 %% Add folders to path
 addpath('Constants')
 addpath('Misc')
+addpath('RVO')
 
 %% Configure graphical settings
 set(0, 'DefaultFigureRenderer', 'opengl');
@@ -21,7 +22,7 @@ goals = zeros(1,nScenarios);
 
 %%
 tStart = datetime('now');
-
+tElapsedSimTotal = 0;
 %% Main Loop
 for i = 1:nScenarios
 % Scenario = generaterandomscenario;
@@ -36,7 +37,7 @@ Scenario = Scenarios{iScenario};
     else
         fprintf(['COLL \t Time: ', num2str(tElapsedSim) 's \n'])
     end
-    
+    tElapsedSimTotal = tElapsedSimTotal + tElapsedSim;
     iScenario = iScenario + 1;
     clear Environment
     close
@@ -47,4 +48,4 @@ tEnd = datetime('now');
 tElapsed = seconds(duration(tEnd-tStart));
 tRun = tElapsed/nScenarios;
 successRate = 100*nnz(goals)/nScenarios;
-fprintf(['Time Elapsed: ' num2str(tElapsed) '\t Time Per Run: ' num2str(tRun) '\t Success Rate: ' num2str(successRate) '%% \n'])
+fprintf(['Simulation Time Elapsed: ' num2str(tElapsedSimTotal) '\t Time Per Run: ' num2str(tRun) '\t Success Rate: ' num2str(successRate) '%% \n'])
