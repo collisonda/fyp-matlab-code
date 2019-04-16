@@ -52,4 +52,20 @@ for iPos = 1:length(x)
     end    
 end
 
+% agent1 = [90, 0, -90, 0];
+% agent2 = [-90, 20, 90, 20];
+% agent3 = [-90, -20, 90, -20];
+% Scenarios{iScenario,1} = [agent1; agent2; agent3];
+% 
+% iScenario = iScenario + 1;
+% 
+% agent1 = [90, 20, -90, 20];
+% agent2 = [90, -20, -90, -20];
+% agent3 = [-90, 20, 90, 20];
+% agent4 = [-90, -20, 90, -20];
+% Scenarios{iScenario} = [agent1; agent2; agent3; agent4];
+% 
+% iScenario = iScenario + 1;
+
+
 end

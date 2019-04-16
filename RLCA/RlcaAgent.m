@@ -109,12 +109,13 @@ classdef RlcaAgent
             global Q
             global A
             global visitCount
+            global epsilon
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [Velocity] = obj.calcgoalvelocity();
             else
                 % Choose an action
-                sV = visitCount(:,:,obj.stateId);
-                [r,c] = find(sV==0);
+                sQ = Q(:,:,obj.stateId);
+                [r,c] = find(sQ==0);
                 nUnvisitedActions = nnz(r);
                 if (rand >= epsilon) || nUnvisitedActions == 0 % Choose best option
                     sQ = Q(:,:,obj.stateId);

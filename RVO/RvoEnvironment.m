@@ -1,4 +1,4 @@
-classdef RlcaEnvironment < handle
+classdef RvoEnvironment < handle
     %RLCAENVIRONMENT Summary of this class goes here
     %   Author: Dale Collison
     
@@ -14,15 +14,12 @@ classdef RlcaEnvironment < handle
         guiOn
         eventsOn
         tOptimal
-        isTraining
     end
     
     %% RlcaEnvironment - Public Methods
     methods (Access = public)
         
-        function obj = RlcaEnvironment(guiOn,Scenario,isTraining)
-            
-            obj.isTraining = isTraining;
+        function obj = RvoEnvironment(guiOn,Scenario)
             obj.tOptimal = 30;
             obj.guiOn = guiOn;
             obj.eventsOn = 0;
@@ -60,10 +57,6 @@ classdef RlcaEnvironment < handle
                     obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
                 end
                 
-                if obj.isTraining == 1
-                    obj.assessq();
-                end
-                
             end
             if obj.eventsOn
                 createevent('Run complete');
@@ -81,7 +74,7 @@ classdef RlcaEnvironment < handle
         
         function [] = createagent(obj,x0,y0,xg,yg)
             iAgent = obj.nAgents + 1;
-            obj.Agents{iAgent} = RlcaAgent(x0,y0,xg,yg,iAgent);
+            obj.Agents{iAgent} = RvoAgent(x0,y0,xg,yg,iAgent);
             obj.nAgents = iAgent;
             if obj.guiOn
                 obj.Gui = obj.Gui.generateagentgraphic(obj.Agents{iAgent});
@@ -99,9 +92,14 @@ classdef RlcaEnvironment < handle
                     if iAgent ~= jAgent
                         obj.Agents{iAgent} = obj.Agents{iAgent}.addneighbour(obj.Agents{jAgent});
                     end
+                                 
                 end
                 
-                obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();
+                
+            end
+            
+            for iAgent = 1:obj.nAgents
+  obj.Agents{iAgent} = obj.Agents{iAgent}.timestep(); 
             end
         end
         
@@ -195,6 +193,7 @@ classdef RlcaEnvironment < handle
         
         function obj = applyreward(obj,reward,retrocausality)
             global Q
+            global S
             global visitCount
             
             % Needs to take an average of all the rewards for that action
@@ -207,41 +206,74 @@ classdef RlcaEnvironment < handle
                     nonGoalIdx = Agent.PastStates ~= 0;
                     nonGoalStates = Agent.PastStates(nonGoalIdx);
                     nonGoalActions = Agent.PastActions(nonGoalIdx);
-                    
-                    for iAction = 1:length(nonGoalActions)
-                        iState = iAction;
-                        actionId = nonGoalActions(iAction);
-                        stateId = nonGoalStates(iState);
-                        
+                                     
+                    if ~isempty(nonGoalActions)
+                        for i = 1:length(nonGoalActions)
+                            iAction = length(nonGoalActions) - i + 1;
+                            adjustedLearningRate = RLConstants.LEARNING_RATE^(0.9+(iAction/10));
+                            iState = iAction;
+                            actionId = nonGoalActions(iAction);
+                            stateId = nonGoalStates(iState);
+                            
+                            if stateId > 0
+                                sQ = Q(:,:,stateId);
+                                oldQ = sQ(actionId);
+                                
+                                surroundingStates = [stateId - 14, stateId - 13,...
+                                    stateId - 12, stateId - 1, stateId, stateId + 1,...
+                                    stateId + 12, stateId + 13, stateId + 14];
+                                isInvalidState = zeros(1,length(surroundingStates));
+                                for j = 1:length(surroundingStates)
+                                    isInvalidState(j) = surroundingStates(j) > 169 || surroundingStates(j) < 1  || isnan(S{surroundingStates(j)}(1));
+                                end
+                                
+                                surroundingStates(isInvalidState == 1) = [];
+                                maxQ = zeros(1,length(surroundingStates));
+                                for j = 1:length(surroundingStates)
+                                    maxQ(i) = max(max(Q(:,:,surroundingStates(j))));
+                                end
+                                
+                                meanMaxQ = mean(maxQ);
+                                
+                                newQ = ((1 - adjustedLearningRate) * oldQ)...
+                                    + adjustedLearningRate * (reward(iAgent)...
+                                    + RLConstants.DISCOUNT_FACTOR * meanMaxQ);
+                                
+                                sQ(actionId) = newQ;
+                                Q(:,:,stateId) = sQ;
+                            end
+                        end
+                    else
+                        actionId = Agent.actionId;
+                        stateId = Agent.stateId;
                         if stateId > 0
                             sQ = Q(:,:,stateId);
-                            sV = visitCount(:,:,stateId);
-                            nVisits = sV(actionId);
+                            oldQ = sQ(actionId);
                             
-                            nVisits = nVisits/(RLConstants.DISCOUNT_FACTOR^(iAction-1));
-                            weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
-                            
-                            sV(actionId) = sV(actionId) + 1;
-                            visitCount(:,:,stateId) = sV;
-                            sQ(actionId) = round(weightedReward,2);
-                            if isnan(sQ(actionId))
-                                1;
+                            surroundingStates = [stateId - 14, stateId - 13,...
+                                stateId - 12, stateId - 1, stateId, stateId + 1,...
+                                stateId + 12, stateId + 13, stateId + 14];
+                            isInvalidState = zeros(1,length(surroundingStates));
+                            for i = 1:length(surroundingStates)
+                                isInvalidState(i) = surroundingStates(i) > 169 || isnan(S{surroundingStates(i)}(1));
                             end
+                            
+                            surroundingStates(isInvalidState == 1) = [];
+                            maxQ = zeros(1,length(surroundingStates));
+                            for i = 1:length(surroundingStates)
+                                maxQ(i) = max(max(Q(:,:,surroundingStates(i))));
+                            end
+                            
+                            meanMaxQ = mean(maxQ);
+                            
+                            newQ = ((1 - RLConstants.LEARNING_RATE) * oldQ)...
+                                + RLConstants.LEARNING_RATE * (reward(iAgent)...
+                                + RLConstants.DISCOUNT_FACTOR * meanMaxQ);
+                            
+                            sQ(actionId) = newQ;
                             Q(:,:,stateId) = sQ;
                         end
-                    end
-                else
-                    actionId = Agent.actionId;
-                    stateId = Agent.stateId;
-                    if stateId > 0
-                        sQ = Q(:,:,stateId);
-                        sV = visitCount(:,:,stateId);
-                        nVisits = sV(actionId);
-                        weightedReward = ((nVisits*sQ(actionId)) + reward(iAgent)) / (nVisits+1);
-                        sV(actionId) = sV(actionId) + 1;
-                        visitCount(:,:,stateId) = sV;
-                        sQ(actionId) = round(weightedReward,2);
-                        Q(:,:,stateId) = sQ;
+                        
                     end
                     
                 end
