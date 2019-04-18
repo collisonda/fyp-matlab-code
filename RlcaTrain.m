@@ -1,11 +1,7 @@
-%TODO: Redo Q calculation to match how its supposed to work for Q learning
-
-
-
-
 %% Housekeeping
 clc
 close
+clear qDiff
 
 %% Settings to Change
 guiOn       = 0; % Toggles GUI.
@@ -32,10 +28,8 @@ epsilon = -1;
 %% Assign Globals
 if resetQ
     load('untrainedQ.mat')
-    load('blankVisitCount.mat')
 else
     load('Q.mat')
-    load('VisitCount.mat')
 end
 
 A = createactionspace();
@@ -55,7 +49,7 @@ nEpochs = 7;
 toGet = 3;
 nGoals = 0;
 Scenarios = generatetrainingscenarios();
-% Scenarios = Scenarios(4:7);
+Scenarios = Scenarios(1:7);
 nScenarios = length(Scenarios);
 successes = zeros(1,nScenarios);
 tic
@@ -71,15 +65,19 @@ yticks([])
 ax2 = axes('Position',ax1.Position,'XAxisLocation','bottom',...
     'YAxisLocation','left',...
     'Color','none');
-h = animatedline('Marker','none');
+h = animatedline('Marker','none','Color','r');
 addpoints(h,0,0);
 grid on
 ylim([0 100])
 ylabel('Success Rate %')
 xlabel('Step')
+drawnow
 hold on
 iStage = 1;
-while nGoals < nScenarios*2
+successRate = 0;
+toGet = 3;
+nTotalGoals = 0;
+while nTotalGoals < 2*nScenarios
     Scenario = Scenarios{iScenario};
     
     prevQ = Q;
@@ -89,40 +87,49 @@ while nGoals < nScenarios*2
     fprintf(['Epsilon: ' num2str(epsilon, '%.2f') '\t Training Stage: ' num2str(iStage) '\t Epoch: ' num2str(epoch)  '\t Step: ' num2str(j) '\t Scenario: ' num2str(iScenario) '\t Result: '])
     if goal
         successes(iScenario) = 1;
+        nTotalGoals = nTotalGoals + 1;
         nGoals = nGoals + 1;
         fprintf(['GOAL \t Time: ', num2str(tElapsedSim, '%.2f') 's \t'])
     else
         successes(iScenario) = 0;
         nGoals = 0;
+        nTotalGoals = 0;
         fprintf(['COLL \t Time: ', num2str(tElapsedSim, '%.2f') 's \t'])
     end
     successRate = 100*nnz(successes)/nScenarios;
     fprintf(['tStep: ' num2str(toc, '%.3f') '\t Success Rate: ' num2str(successRate, '%.2f') '%% \n']);
     
     tic
-    
-    %         if nGoals == toGet
-    %             nGoals = 0;
-    iScenario = iScenario + 1;
-    if iScenario > nScenarios
-        iScenario = 1;
-        epoch = epoch + 1;
-        epsilon = epsilon - 0.05;
-    end
+
+%     if nGoals == toGet
+%         nGoals = 0;
+%         toGet = toGet - 1;
+%         if toGet < 1
+%             toGet = 1;
+%         end
+        iScenario = iScenario + 1;
+        if iScenario > nScenarios
+            iScenario = 1;
+            epoch = epoch + 1;
+            epsilon = epsilon - 0.005;
+        end
+%     end
     
     qDiff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
             ax1.XLim = [0 ax2.XLim(2)/nScenarios];
         ax1.XTick = [0:ax2.XLim(2)];
     
-    save('Q.mat','Q');
-    save('visitCount.mat','visitCount');
+    
+%     save('visitCount.mat','visitCount');
     
     i = i + 1;
     j = j + 1;
 
     addpoints(h,i,successRate)
-    clear Environment
+    drawnow
+save('Q.mat','Q');
 %     close
+        clear Environment
 end
 
 %     stageEnd(iStage) = j - 1;

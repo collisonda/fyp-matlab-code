@@ -181,31 +181,39 @@ classdef RlcaAgent
             if isempty(obj.neighbourIds)
                 stateId = 0;
             else
+                
                 p = obj.position;
                 np = obj.Neighbours.position;
-                if size(np,1) > 1
-                    diff = abs(p-np);
-                    [~,idx] = min(sum(diff')');
-                    np = obj.Neighbours.position(idx,:);
-                end
                 h = obj.heading;
                 deltaP = obj.goal - obj.position;
                 gh = atan2(deltaP(2),deltaP(1));
+                for i = 1:size(np,1)
+                    np(i,:) = obj.translateneighbourposition(p,np(i,:),gh);
+                    npAltered(i,1) = np(i,1)*1.1;
+                    npAltered(i,2) = np(i,2);
+                    diff(i) = norm(npAltered(i,:));
+                end
+                if size(np,1) > 1
+                    [~,idx] = min(diff);
+                    np = np(idx,:);
+                end
                 
-                npTranslated = obj.translateneighbourposition(p,np,gh);
                 
-                npTranslated = 10*round(npTranslated/10);
+                                
                 
-                if norm(npTranslated) > 60
-                    signs = npTranslated./abs(npTranslated);
-                    npTranslated = abs(npTranslated);
-                    [~,idx] = max(npTranslated);
-                    npTranslated(idx) = npTranslated(idx) - 10;
-                    npTranslated = npTranslated.*signs;
+                npRounded = 10*round(np/10);
+                
+                while norm(npRounded) > 60
+                    signs = npRounded./abs(npRounded);
+                    signs(isnan(signs)) = 1;
+                    npRounded = abs(npRounded);
+                    [~,idx] = max(npRounded);
+                    npRounded(idx) = npRounded(idx) - 10;
+                    npRounded = npRounded.*signs;
                 end
                 
                 matS = [S{:}];
-                stateId = (strfind(matS,npTranslated) + 1)/2;
+                stateId = (strfind(matS,npRounded) + 1)/2;
                 if length(stateId) > 1
                     idx = floor(stateId) == stateId;
                     stateId = stateId(idx);

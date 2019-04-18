@@ -37,8 +37,6 @@ classdef HrvoEnvironment < handle
         end
         
         function [goalsReached, tElapsedSim] = runsimulation(obj)
-            pause(0.5)
-            tic
             
             if obj.eventsOn
                 createevent();
@@ -62,14 +60,8 @@ classdef HrvoEnvironment < handle
                 createevent('Run complete');
                 createevent();
             end
-            tElapsed = toc;
             tElapsedSim = t;
             goalsReached = obj.goalsReached;
-            if obj.eventsOn
-                createevent(['Real Time Elapsed        ' num2str(tElapsed) ' s']);
-                createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
-                createevent(['Real:Simulation Ratio    ' num2str(tElapsedSim/tElapsed)]);
-            end
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
@@ -94,12 +86,12 @@ classdef HrvoEnvironment < handle
                     end
                                  
                 end
-                  obj.Agents{iAgent} = obj.Agents{iAgent}.timestep(); 
+                  
                 
             end
             
             for iAgent = 1:obj.nAgents
-
+obj.Agents{iAgent} = obj.Agents{iAgent}.timestep(); 
             end
         end
         

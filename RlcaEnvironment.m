@@ -40,8 +40,6 @@ classdef RlcaEnvironment < handle
         end
         
         function [goalsReached, tElapsedSim] = runsimulation(obj)
-            pause(0.5)
-            tic
             
             if obj.eventsOn
                 createevent();
@@ -69,14 +67,8 @@ classdef RlcaEnvironment < handle
                 createevent('Run complete');
                 createevent();
             end
-            tElapsed = toc;
             tElapsedSim = t;
             goalsReached = obj.goalsReached;
-            if obj.eventsOn
-                createevent(['Real Time Elapsed        ' num2str(tElapsed) ' s']);
-                createevent(['Simulation Time Elapsed  ' num2str(tElapsedSim) ' s']);
-                createevent(['Real:Simulation Ratio    ' num2str(tElapsedSim/tElapsed)]);
-            end
         end
         
         function [] = createagent(obj,x0,y0,xg,yg)
@@ -101,7 +93,11 @@ classdef RlcaEnvironment < handle
                     end
                 end
                 
-                obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();
+                
+            end
+            
+            for iAgent = 1:obj.nAgents
+               obj.Agents{iAgent} = obj.Agents{iAgent}.timestep(); 
             end
         end
         
@@ -208,6 +204,9 @@ classdef RlcaEnvironment < handle
                     nonGoalIdx = Agent.PastStates ~= 0;
                     nonGoalStates = Agent.PastStates(nonGoalIdx);
                     nonGoalActions = Agent.PastActions(nonGoalIdx);
+                    if length(nonGoalActions) > 20
+                       nonGoalActions = nonGoalActions(1:20); 
+                    end
                                      
                     if ~isempty(nonGoalActions)
                         for i = 1:length(nonGoalActions)

@@ -8,7 +8,6 @@ guiOn       = 1; % Toggles GUI.
 %% Add folders to path
 addpath('Constants')
 addpath('Misc')
-addpath('RVO')
 
 %% Configure graphical settings
 set(0, 'DefaultFigureRenderer', 'opengl');
@@ -25,8 +24,8 @@ tStart = datetime('now');
 tElapsedSimTotal = 0;
 %% Main Loop
 for i = 1:nScenarios
-% Scenario = generaterandomscenario;
-Scenario = Scenarios{iScenario};
+Scenario = generaterandomscenario;
+% Scenario = Scenarios{iScenario};
     
     Environment = RvoEnvironment(guiOn,Scenario);
     [goal, tElapsedSim] = Environment.runsimulation();

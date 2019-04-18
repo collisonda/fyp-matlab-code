@@ -8,7 +8,6 @@ guiOn       = 1; % Toggles GUI.
 %% Add folders to path
 addpath('Constants')
 addpath('Misc')
-addpath('RVO')
 
 %% Configure graphical settings
 set(0, 'DefaultFigureRenderer', 'opengl');
