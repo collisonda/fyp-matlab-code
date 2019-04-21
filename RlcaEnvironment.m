@@ -203,11 +203,7 @@ classdef RlcaEnvironment < handle
                     
                     nonGoalIdx = Agent.PastStates ~= 0;
                     nonGoalStates = Agent.PastStates(nonGoalIdx);
-                    nonGoalActions = Agent.PastActions(nonGoalIdx);
-                    if length(nonGoalActions) > 20
-                       nonGoalActions = nonGoalActions(1:20); 
-                    end
-                                     
+                    nonGoalActions = Agent.PastActions(nonGoalIdx);      
                     if ~isempty(nonGoalActions)
                         for i = 1:length(nonGoalActions)
                             iAction = length(nonGoalActions) - i + 1;

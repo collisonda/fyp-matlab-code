@@ -49,7 +49,7 @@ nEpochs = 7;
 toGet = 3;
 nGoals = 0;
 Scenarios = generatetrainingscenarios();
-Scenarios = Scenarios(1:7);
+% Scenarios = Scenarios(4);
 nScenarios = length(Scenarios);
 successes = zeros(1,nScenarios);
 tic
@@ -77,7 +77,8 @@ iStage = 1;
 successRate = 0;
 toGet = 3;
 nTotalGoals = 0;
-while nTotalGoals < 2*nScenarios
+qDiff = 1;
+while qDiff(i) > 0.2e-5
     Scenario = Scenarios{iScenario};
     
     prevQ = Q;
@@ -101,21 +102,21 @@ while nTotalGoals < 2*nScenarios
     
     tic
 
-%     if nGoals == toGet
-%         nGoals = 0;
-%         toGet = toGet - 1;
-%         if toGet < 1
-%             toGet = 1;
-%         end
+    if nGoals == toGet
+        nGoals = 0;
+        toGet = toGet - 1;
+        if toGet < 1
+            toGet = 1;
+        end
         iScenario = iScenario + 1;
         if iScenario > nScenarios
             iScenario = 1;
             epoch = epoch + 1;
             epsilon = epsilon - 0.005;
         end
-%     end
+    end
     
-    qDiff(i) = round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6);
+    qDiff(i+1) = abs(round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6));
             ax1.XLim = [0 ax2.XLim(2)/nScenarios];
         ax1.XTick = [0:ax2.XLim(2)];
     
@@ -143,13 +144,14 @@ tRun = tElapsed/i;
 fprintf(['Time Elapsed: ' num2str(tElapsed) '\t Time Per Run: ' num2str(tRun) '\n'])
 
 %% Plot Q over time
-figure
-plot(1:i-1,qDiff,'-','Color',[0.5 0.5 0.5])
+qChangeFig = figure;
+plot(1:i-1,qDiff(2:end),'-','Color',[0.5 0.5 0.5])
 hold on
-plot(1:i-1,smooth(qDiff,200),'-r','LineWidth',1.5)
+plot(1:i-1,smooth(qDiff(2:end),200),'-r','LineWidth',1.5)
 grid on
 xlabel('Step');
 ylabel('Q Change');
+ qChangeFig.CurrentAxes.YLim = [0, qChangeFig.CurrentAxes.YLim(2)];
 
 %% Visualise Q
 if visualiseQ

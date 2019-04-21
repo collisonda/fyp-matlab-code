@@ -56,7 +56,11 @@ classdef RlcaAgent
                 [obj.stateId] = obj.getstate();
                 obj.PastStates = [obj.stateId, obj.PastStates];
                 
+                prevHeading = obj.heading;
                 [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
+                
+                obj = obj.pathsmoothing(prevHeading);
+
                 
                 obj.PastActions = [obj.actionId, obj.PastActions];
                 
@@ -108,29 +112,38 @@ classdef RlcaAgent
         function [actionId, heading, Velocity] = calcaction(obj)
             global Q
             global A
-            global visitCount
             global epsilon
             if obj.stateId == 0 % No neighbours to worry about, go full speed at the goal.
                 [Velocity] = obj.calcgoalvelocity();
+                deltaP = obj.goal - obj.position;
+                gh = atan2(deltaP(2),deltaP(1))-pi/2;
+                translatedVelocity = obj.translatevelocity(Velocity,gh);
+                translatedVelocity = obj.matchvelocity(translatedVelocity);
+                actionId = obj.getactionid(Velocity);
+                heading = atan2(translatedVelocity(2),translatedVelocity(1));
+                Velocity = translatedVelocity;
             else
                 % Choose an action
                 sQ = Q(:,:,obj.stateId);
                 [r,c] = find(sQ==0);
                 nUnvisitedActions = nnz(r);
                 if (rand >= epsilon) || nUnvisitedActions == 0 % Choose best option
-                    sQ = Q(:,:,obj.stateId);
+%                     sQ = Q(:,:,obj.stateId);
                     M = max(max(sQ));
                     [r,c] = find(sQ==M);
                     iR = 1;
                     iC = 1;
                     deltaP = obj.goal - obj.position;
                     gh = atan2(deltaP(2),deltaP(1))-pi/2;
-                    translatedVelocity = obj.translatevelocity(A{r(1),c(1)},gh);
-                    currentDeltaV = norm(obj.Velocity-translatedVelocity);
+%                     translatedVelocity = obj.translatevelocity(A{r(1),c(1)},gh);
+                    translatedVelocity = A{r(1),c(1)};
+                    %                     goalVelocity = [0,AgentConstants.MAX_SPEED];
+                    goalVelocity = obj.translatevelocity(obj.Velocity,pi/2-atan2(deltaP(2),deltaP(1)));
+                    currentDeltaV = norm(goalVelocity-translatedVelocity);
                     if length(r) > 1
-                        for i = 1:length(r)
-                            translatedVelocity = obj.translatevelocity(A{r(i),c(i)},gh);
-                            deltaV = norm(obj.Velocity-translatedVelocity);
+                        for i = 2:length(r)
+                            translatedVelocity = A{r(i),c(i)};
+                            deltaV = norm(goalVelocity-translatedVelocity);
                             if deltaV < currentDeltaV
                                 iR = i;
                                 iC = i;
@@ -147,12 +160,13 @@ classdef RlcaAgent
                     iC = 1;
                     deltaP = obj.goal - obj.position;
                     gh = atan2(deltaP(2),deltaP(1))-pi/2;
-                    translatedVelocity = obj.translatevelocity(A{r(1),c(1)},gh);
-                    currentDeltaV = norm(obj.Velocity-translatedVelocity);
+                    translatedVelocity = A{r(1),c(1)};
+                    goalVelocity = [0,AgentConstants.MAX_SPEED];
+                    currentDeltaV = norm(goalVelocity-translatedVelocity);
                     if length(r) > 1
                         for i = 1:length(r)
-                            translatedVelocity = obj.translatevelocity(A{r(i),c(i)},gh);
-                            deltaV = norm(obj.Velocity-translatedVelocity);
+                            translatedVelocity = A{r(1),c(1)};
+                            deltaV = norm(goalVelocity-translatedVelocity);
                             if deltaV < currentDeltaV
                                 iR = i;
                                 iC = i;
@@ -165,7 +179,7 @@ classdef RlcaAgent
                     end
                     Velocity = A{r,c};
                 end
-            end
+                
             deltaP = obj.goal - obj.position;
             gh = atan2(deltaP(2),deltaP(1))-pi/2;
             translatedVelocity = obj.translatevelocity(Velocity,gh);
@@ -173,6 +187,8 @@ classdef RlcaAgent
             actionId = obj.getactionid(Velocity);
             heading = atan2(translatedVelocity(2),translatedVelocity(1));
             Velocity = translatedVelocity;
+            end
+
             
         end
         
@@ -257,6 +273,7 @@ classdef RlcaAgent
         function [Velocity] = matchvelocity(~,exactVelocity)
             v = linspace(-AgentConstants.MAX_SPEED,AgentConstants.MAX_SPEED,101);
             v = round(v,3);
+            exactVelocity = round(exactVelocity,3);
             Velocity = interp1(v,v,exactVelocity,'nearest');
         end
         
@@ -293,6 +310,23 @@ classdef RlcaAgent
             deltaP = obj.goal - obj.position;
             headingVector = deltaP/norm(deltaP);
             heading = atan2(deltaP(2),deltaP(1));
+            
+        end
+        
+        function obj = pathsmoothing(obj,prevHeading)
+            angles = rad2deg([prevHeading, obj.heading]);
+
+            dim = 2;
+            
+            angles = angles * pi/180;
+            angles = exp(i*angles);
+            mid = mean(angles,dim);
+            out = atan2(imag(mid),real(mid))*180/pi;
+            
+            obj.heading = deg2rad(out);
+            
+            obj.Velocity = [AgentConstants.MAX_SPEED*cos(obj.heading),...
+                AgentConstants.MAX_SPEED*sin(obj.heading)];
             
         end
         

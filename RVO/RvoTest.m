@@ -24,10 +24,11 @@ tStart = datetime('now');
 tElapsedSimTotal = 0;
 %% Main Loop
 for i = 1:nScenarios
-Scenario = generaterandomscenario;
-% Scenario = Scenarios{iScenario};
+% Scenario = generaterandomscenario;
+Scenario = Scenarios{iScenario};
     
     Environment = RvoEnvironment(guiOn,Scenario);
+%     pause(10)
     [goal, tElapsedSim] = Environment.runsimulation();
     fprintf(['Test ' num2str(i) ' of ' num2str(nScenarios) '\t Scenario: ' num2str(iScenario) '\t Result: '])
     if goal

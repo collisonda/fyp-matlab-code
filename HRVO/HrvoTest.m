@@ -14,6 +14,7 @@ set(0, 'DefaultFigureRenderer', 'opengl');
 opengl hardware
 
 Scenarios = generatetestingscenarios();
+% Scenarios = Scenarios(1);
 iScenario = 1;
 
 nScenarios = length(Scenarios);
