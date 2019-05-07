@@ -28,6 +28,8 @@ classdef RlcaGui < handle
             obj.Window = figure('Name','RLCA GUI','Position',windowSettings,...
                 'GraphicsSmoothing','on','Resize','off');
             obj.setupenvironmentplot();
+            set(gca, 'FontName', 'Times New Roman')
+set(gca, 'FontSize', 12)
         end
         
         function obj = generateagentgraphic(obj,Agent)

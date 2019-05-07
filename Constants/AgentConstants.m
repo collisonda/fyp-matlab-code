@@ -7,6 +7,7 @@ classdef AgentConstants < handle
         RADIUS = 8;                 % The radius of an agent.
         NEIGHBOURHOOD_RADIUS = 60;  % The radius of the agent's vision.
         VISION_ANGLE = pi/2;      % The arc angle of the agent's vision.
+        VO_VISION_ANGLE = pi;
         GOAL_MARGIN = 1;            % The minimum distance the agent must be 
                                     % from its goal position to be considered to have reached it.
         MAX_SPEED = 6;              % Maximum speed of the agent.

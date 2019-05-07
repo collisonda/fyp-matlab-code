@@ -55,22 +55,26 @@ successes = zeros(1,nScenarios);
 tic
 
 figure
-ax1 = axes('XAxisLocation','top',...
+% ax1 = axes('XAxisLocation','top',...
+%     'YAxisLocation','left',...
+%     'Color',[1 1 1]);
+% xlabel('Epoch')
+% set(gca, 'FontName', 'Times New Roman')
+% set(gca, 'FontSize', 12)
+% xlim([0 1])
+% xticks([0])
+% yticks([])
+ax2 = axes('XAxisLocation','bottom',...
     'YAxisLocation','left',...
-    'Color',[1 1 1]);
-xlabel('Epoch')
-xlim([0 1])
-xticks([0])
-yticks([])
-ax2 = axes('Position',ax1.Position,'XAxisLocation','bottom',...
-    'YAxisLocation','left',...
-    'Color','none');
+    'Color','white');
 h = animatedline('Marker','none','Color','r');
 addpoints(h,0,0);
 grid on
 ylim([0 100])
 ylabel('Success Rate %')
 xlabel('Step')
+set(gca, 'FontName', 'Times New Roman')
+set(gca, 'FontSize', 12)
 drawnow
 hold on
 iStage = 1;
@@ -78,14 +82,15 @@ successRate = 0;
 toGet = 3;
 nTotalGoals = 0;
 qDiff = 1;
-while qDiff(i) > 0.2e-5
+finishCheck = 0;
+while finishCheck == 0
     Scenario = Scenarios{iScenario};
     
     prevQ = Q;
     
     Environment = RlcaEnvironment(guiOn,Scenario,1);
     [goal, tElapsedSim] = Environment.runsimulation();
-    fprintf(['Epsilon: ' num2str(epsilon, '%.2f') '\t Training Stage: ' num2str(iStage) '\t Epoch: ' num2str(epoch)  '\t Step: ' num2str(j) '\t Scenario: ' num2str(iScenario) '\t Result: '])
+    fprintf(['\t Step: ' num2str(j) '\t Scenario: ' num2str(iScenario) '\t Result: '])
     if goal
         successes(iScenario) = 1;
         nTotalGoals = nTotalGoals + 1;
@@ -117,8 +122,8 @@ while qDiff(i) > 0.2e-5
     end
     
     qDiff(i+1) = abs(round(mean(Q(~isnan(Q)) - prevQ(~isnan(prevQ))),6));
-            ax1.XLim = [0 ax2.XLim(2)/nScenarios];
-        ax1.XTick = [0:ax2.XLim(2)];
+%             ax1.XLim = [0 ax2.XLim(2)/nScenarios];
+%         ax1.XTick = [0:ax2.XLim(2)];
     
     
 %     save('visitCount.mat','visitCount');
@@ -131,6 +136,8 @@ while qDiff(i) > 0.2e-5
 save('Q.mat','Q');
 %     close
         clear Environment
+        
+        finishCheck = (iScenario == 1) & (nTotalGoals > 4*nScenarios);
 end
 
 %     stageEnd(iStage) = j - 1;
@@ -157,3 +164,5 @@ ylabel('Q Change');
 if visualiseQ
     visualiseq;
 end
+set(gca, 'FontName', 'Times New Roman')
+set(gca, 'FontSize', 12)

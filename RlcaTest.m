@@ -31,10 +31,11 @@ S = createstatespace();
 nEpochs = 10;
 
 Scenarios = generatetestingscenarios();
-% Scenarios = Scenarios(1);
+Scenarios = Scenarios(4);
 iScenario = 1;
 
 nScenarios = length(Scenarios);
+% nScenarios = 100;
 goals = zeros(1,nScenarios);
 nEpochs = nScenarios;
 
@@ -60,7 +61,9 @@ Scenario = Scenarios{iScenario};
 %     save('Q.mat','Q');
 %     save('visitCount.mat','visitCount');
     clear Environment
+%     pause
     close
+
 end
 
 %%

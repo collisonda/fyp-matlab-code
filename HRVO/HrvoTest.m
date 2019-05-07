@@ -14,7 +14,7 @@ set(0, 'DefaultFigureRenderer', 'opengl');
 opengl hardware
 
 Scenarios = generatetestingscenarios();
-% Scenarios = Scenarios(1);
+Scenarios = Scenarios(5);
 iScenario = 1;
 
 nScenarios = length(Scenarios);
@@ -40,6 +40,7 @@ Scenario = Scenarios{iScenario};
     tElapsedSimTotal = tElapsedSimTotal + tElapsedSim;
     iScenario = iScenario + 1;
     clear Environment
+%     pause
     close
 end
 

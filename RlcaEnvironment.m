@@ -53,15 +53,13 @@ classdef RlcaEnvironment < handle
                 obj.time = t;
                 obj = obj.updateagents();
                 [obj.isAgentStatic, obj.collision, obj.goalsReached] = obj.assessagents();
-                
-                if obj.guiOn
-                    obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
-                end
-                
+
                 if obj.isTraining == 1
                     obj.assessq();
                 end
-                
+                if obj.guiOn
+                    obj.Gui = obj.Gui.updategui(obj.Agents,obj.nAgents);
+                end
             end
             if obj.eventsOn
                 createevent('Run complete');

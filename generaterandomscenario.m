@@ -9,12 +9,12 @@ xLim = [-100 100];
 yLim = [-100 100];
 
 nAgents = round((maxAgents-2)*rand)+2;
-
+% nAgents = 4;
 positions = zeros(nAgents,4);
 
 nOverlaps = nAgents;
 
-r = AgentConstants.RADIUS * 6;
+r = AgentConstants.RADIUS * 8;
 
 while nOverlaps > 0
     overlaps = zeros(1,nAgents);

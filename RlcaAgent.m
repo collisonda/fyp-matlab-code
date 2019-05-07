@@ -57,9 +57,10 @@ classdef RlcaAgent
                 obj.PastStates = [obj.stateId, obj.PastStates];
                 
                 prevHeading = obj.heading;
+                prevSpeed = norm(obj.Velocity);
                 [obj.actionId, obj.heading, obj.Velocity] = obj.calcaction();
                 
-                obj = obj.pathsmoothing(prevHeading);
+                obj = obj.pathsmoothing(prevHeading,prevSpeed);
 
                 
                 obj.PastActions = [obj.actionId, obj.PastActions];
@@ -239,9 +240,7 @@ classdef RlcaAgent
         end
         
         function velocityTranslated = translatevelocity(~,Velocity,theta)
-            if nnz(isnan(Velocity)) > 0
-                1;
-            end
+
             rotationMatrix = [cos(theta), -sin(theta); sin(theta), cos(theta)];
             
             velocityTranslated = (rotationMatrix*Velocity')';
@@ -313,9 +312,9 @@ classdef RlcaAgent
             
         end
         
-        function obj = pathsmoothing(obj,prevHeading)
+        function obj = pathsmoothing(obj,prevHeading,prevSpeed)
             angles = rad2deg([prevHeading, obj.heading]);
-
+            obj.speed = norm(obj.Velocity);
             dim = 2;
             
             angles = angles * pi/180;
@@ -324,9 +323,9 @@ classdef RlcaAgent
             out = atan2(imag(mid),real(mid))*180/pi;
             
             obj.heading = deg2rad(out);
-            
-            obj.Velocity = [AgentConstants.MAX_SPEED*cos(obj.heading),...
-                AgentConstants.MAX_SPEED*sin(obj.heading)];
+            newSpeed = (obj.speed + prevSpeed) / 2;
+            obj.Velocity = [newSpeed*cos(obj.heading),...
+                newSpeed*sin(obj.heading)];
             
         end
         

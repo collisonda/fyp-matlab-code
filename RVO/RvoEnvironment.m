@@ -24,7 +24,7 @@ classdef RvoEnvironment < handle
             obj.guiOn = guiOn;
             obj.eventsOn = 0;
             if obj.guiOn
-                obj.Gui = RlcaGui();
+                obj.Gui = RvoGui();
             end
             if obj.eventsOn
                 createevent('Initialising');
@@ -87,12 +87,12 @@ classdef RvoEnvironment < handle
                     end
                           
                 end
-                       obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();   
+                    
                 
             end
             
             for iAgent = 1:obj.nAgents
-
+    obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();  
             end
         end
         

@@ -40,6 +40,7 @@ Scenario = Scenarios{iScenario};
     tElapsedSimTotal = tElapsedSimTotal + tElapsedSim;
     iScenario = iScenario + 1;
     clear Environment
+%     pause
     close
 end
 

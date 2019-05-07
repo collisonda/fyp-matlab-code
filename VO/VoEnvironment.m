@@ -83,12 +83,12 @@ classdef VoEnvironment < handle
                     end
                                
                 end
-                   obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();  
+                     
                 
             end
             
             for iAgent = 1:obj.nAgents
-
+obj.Agents{iAgent} = obj.Agents{iAgent}.timestep();
             end
         end
         
